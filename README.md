@@ -2,7 +2,7 @@
 Repository to generate fireplots every day for ECV
 
 ## Links to Images
-![Fireplotting](https://github.com/TrevorWinstral/Fireplots/workflows/Fireplotting/badge.svg)
+![Fireplotting](https://github.com/TrevorWinstral/Fireplots/workflows/Fireplotting/badge.svg) \
 [Brazil States](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Brazil.png) \
 [European Countries](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Europe.png) \
 [Italian Provinces](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Italy.png) \
