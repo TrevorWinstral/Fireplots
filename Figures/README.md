@@ -1,6 +1,6 @@
 # Index for Images
 ![Fireplotting](https://github.com/TrevorWinstral/Fireplots/workflows/Fireplotting/badge.svg) \
-Repository to generate fireplots every day for ECV. Click the link to jump to the image.
+Repository to generate fireplots every day for ECV. Click the link to jump to the image. \
 [Brazilian States](#brazil) \
 [European Countries](#european-countries) \
 [Italian Provinces](#italian-provinces) \
@@ -9,8 +9,8 @@ Repository to generate fireplots every day for ECV. Click the link to jump to th
 
 ## Brazil
 [Back to top](#index-for-images) 
-![European Countries](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Europe.png) 
-[European Countries](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Europe.png) 
+![Brazilian States](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Brazil.png) 
+[Brazilian States](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Brazil.png) 
 
 ## European Countries
 [Back to top](#index-for-images) 
