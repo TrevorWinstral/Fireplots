@@ -131,7 +131,7 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
     # output
     plt.tight_layout()
     if save:
-        fname = ('Figures/Fire_PC_%s.png'%(country+'_'+date)).replace(' ','_') if per_capita  else ('Figures/Fire_%s.png'%(country+'_'+date)).replace(' ','_')
+        fname = ('Figures/Fire_%s_PC.png'%(country)).replace(' ','_') if per_capita  else ('Figures/Fire_%s.png'%(country)).replace(' ','_')
         plt.savefig(fname, dpi=40)
         print(f'Saving to {fname}')
 
@@ -162,7 +162,7 @@ def Brazil():
 
 
 def USA(partitions=None):
-    print('Creating Fireplot for USA')
+    print(f'Creating Fireplot for USA: Partitions={partitions}')
     df = pd.read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
     df = df.pivot(index='date',columns='state',values='cases').iloc[32:]
     df = df[df.iloc[-1].sort_values(ascending=False).index].diff()
@@ -229,7 +229,6 @@ def USA_by_region():
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
     df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
-    print(df)
     fireplot(df, country='USA Regions', Title='Fireplot US Regions (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Regions', legend=True, per_capita=True)
 
 
@@ -455,18 +454,21 @@ def compression():
 
 
 if __name__ == "__main__":
-    PARALLEL = False
+    PARALLEL = True
 
     if PARALLEL:
         print('Using Parallel')
-        arguments = {USA: {'partitions':3}, USA_per_capita: {'partitions':3}}
-        functions = [Brazil, USA, USA_per_capita, Italy, Europe, Zurich]
+        arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
+        functions = [Brazil, USA, USA_per_capita, Italy, Italy_PC, Europe, Zurich]
         for f in functions:
+            print(f)
             if f in arguments:
-                p = multiprocessing.Process(target=f, kwargs=arguments[f])
+                for kwarg in arguments[f]:
+                    p = multiprocessing.Process(target=f, kwargs=kwarg)
+                    p.start()
             else:
                 p = multiprocessing.Process(target=f)
-            p.start()
+                p.start()
         p.join()
 
     else:
