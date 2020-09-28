@@ -461,7 +461,6 @@ if __name__ == "__main__":
         arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
         functions = [Brazil, USA, USA_per_capita, Italy, Italy_PC, Europe, Zurich]
         for f in functions:
-            print(f)
             if f in arguments:
                 for kwarg in arguments[f]:
                     p = multiprocessing.Process(target=f, kwargs=kwarg)
