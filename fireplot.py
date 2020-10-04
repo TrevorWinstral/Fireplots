@@ -434,6 +434,7 @@ def World(partitions=0):
 
 
 def Zurich():
+    print('Creating Fireplot for Zürich (Age Groups)')
     df = pd.read_csv('https://raw.githubusercontent.com/openZH/covid_19/master/fallzahlen_kanton_alter_geschlecht_csv/COVID19_Fallzahlen_Kanton_ZH_altersklassen_geschlecht.csv')
     df=df[['Week', 'Year', 'AgeYearCat', 'NewConfCases']]
     df['WOY'] = df['Year'].astype(str)+'-'+df['Week'].astype(str)+'-1'
@@ -445,6 +446,104 @@ def Zurich():
     #print(df)
 
     fireplot(df, country='Zürich', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True)
+
+
+def Sweden():    
+    print('Creating Fireplot for Sweden')
+    df = pd.read_excel('https://fohm.maps.arcgis.com/sharing/rest/content/items/b5e7488e117749c19881cce45db13f7e/data').drop('Totalt_antal_fall', axis=1)
+    df['WOY'] = pd.to_datetime(df['Statistikdatum'], format='%Y-%m-%d').map(lambda x: str(x.weekofyear)) # week of year column
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].map(strptm).astype(str)
+    df=df.groupby(['WOY']).sum()
+    df=df.rename(columns=lambda s: s.replace('_', ' '))
+    df = df[df.sum().sort_values(ascending=False).index]
+    
+    fireplot(df, country='Sweden', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True)
+
+
+def Sweden_PC():
+    print('Creating Fireplot for Sweden (Per Capita)')
+    df = pd.read_excel('https://fohm.maps.arcgis.com/sharing/rest/content/items/b5e7488e117749c19881cce45db13f7e/data').drop(['Totalt_antal_fall', 'Sörmland'], axis=1)
+    df=df.rename(columns=lambda s: s.replace('_', ' '))
+
+    pop = pd.read_csv('Data/Sweden_Population.csv')[['County', 'Population']]
+    pop_dict_list=pop.to_dict(orient='records')
+
+    pop_dict={}
+    for d in pop_dict_list:
+        state = d['County'].strip()
+        pop_dict[state]=int(d['Population'].replace(',',''))
+
+    #print(pop_dict)
+    def test(x):
+        if x.name=='Statistikdatum':
+            return x
+        return (x/pop_dict[x.name]) * 10000
+
+    
+    df.index = df['Statistikdatum']
+    df = df.drop('Statistikdatum', axis=1)
+    df = df.apply(test)
+    df = df[df.iloc[-1].sort_values(ascending=False).index].fillna(0)
+
+    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].map(strptm).astype(str)
+    df=df.groupby(['WOY']).sum()
+    df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
+    #df = df[df.tail(7).sum().sort_values(ascending=False).index]
+    df = df[df.sum().sort_values(ascending=False).index]
+
+    print(df)
+    fireplot(df, country='Sweden', Title='Fireplot Sweden (Cases per 10k persons)',  grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True)
+
+    return   
+
+
+def Australia():
+    print('Creating Fireplot for Australia')
+    df = pd.read_csv('https://raw.githubusercontent.com/M3IT/COVID-19_Data/master/Data/COVID_AU_state.csv')
+    df=df.pivot_table(index='date', columns='state', values='confirmed')
+
+    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].map(strptm).astype(str)
+    df=df.groupby(['WOY']).sum()
+    df = df[df.sum().sort_values(ascending=False).index]
+
+    print(df) 
+    fireplot(df, country='Australia', Title='Fireplot Australia (Cases)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True)
+
+def Australia_PC():
+    print('Creating Fireplot for Australia (Per Capita)')
+    pop_temp = pd.DataFrame(pd.read_html('https://en.wikipedia.org/wiki/Demography_of_Australia')[4])[['State/territory', 'Population(2016 census)']]
+    pop = pd.DataFrame(pop_temp['State/territory'])
+    pop['Population'] = pop_temp['Population(2016 census)']
+    pop_dict_list=pop.to_dict(orient='records')
+    
+    pop_dict={}
+    for d in pop_dict_list:
+        state = d['State/territory']
+        pop_dict[state]=d['Population']
+    #print(pop_dict)
+
+    df = pd.read_csv('https://raw.githubusercontent.com/M3IT/COVID-19_Data/master/Data/COVID_AU_state.csv')
+    df=df.pivot_table(index='date', columns='state', values='confirmed')
+    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].map(strptm).astype(str)
+    df=df.groupby(['WOY']).sum()
+
+    def test(x):
+        return (x/pop_dict[x.name]) * 10000
+    
+    df = df.apply(test)
+    df = df[df.sum().sort_values(ascending=False).index]
+    df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
+
+    fireplot(df, country='Australia', Title='Fireplot Australia (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True)
+
+
 
 def compression():
     print('Compressing Images')
@@ -459,7 +558,7 @@ if __name__ == "__main__":
     if PARALLEL:
         print('Using Parallel')
         arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
-        functions = [Brazil, USA, USA_per_capita, Italy, Italy_PC, Europe, Zurich]
+        functions = [Australia, Australia_PC, Brazil, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC Zurich]
         for f in functions:
             if f in arguments:
                 for kwarg in arguments[f]:
@@ -477,7 +576,7 @@ if __name__ == "__main__":
         #USA_per_capita(partitions=0)
         #USA_per_capita(partitions=3)
         #USA(partitions=0)
-        USA_by_region()
+        #USA_by_region()
         #Spain() # Data Incomplete
         #UK() # Data Incomplete
         #Italy()
@@ -486,6 +585,10 @@ if __name__ == "__main__":
         #Europe()
         #World()
         #Zurich()
+        #Sweden()
+        #Sweden_PC()
+        #Australia()
+        #Australia_PC()
 
     #compression()
         

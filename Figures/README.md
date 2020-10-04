@@ -1,11 +1,20 @@
 # Index for Images
 ![Fireplotting](https://github.com/TrevorWinstral/Fireplots/workflows/Fireplotting/badge.svg) \
-Repository to generate fireplots every day for ECV. Click the link to jump to the image. \
+Repository to generate fireplots every day for ECV. Click [here](https://TrevorWinstral.github.io/Fireplots) to get list of links to raw files. Click the link to jump to the image. \
+[Australian Provinces](#australia) \
 [Brazilian States](#brazil) \
 [European Countries](#european-countries) \
 [Italian Provinces](#italian-provinces) \
 [US States](#usa) \
+[Swedish Provinces](#sweden)
 [Zürich (by Age Groups)](#zürich) 
+
+## Australia
+[Back to top](#index-for-images)
+![Australian Provinces](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Australia.png) 
+[Australian Provinces File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Australia.png) 
+![Australian Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Australia_PC.png) 
+[Australian Provinces (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Australia_PC.png) 
 
 ## Brazil
 [Back to top](#index-for-images) 
@@ -40,6 +49,13 @@ Repository to generate fireplots every day for ECV. Click the link to jump to th
 [Group 2 (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_USA_Partition_2_PC.png) 
 ![Group 3 (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_USA_Partition_3_PC.png) 
 [Group 3 (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_USA_Partition_3_PC.png) 
+
+## Sweden
+[Back to top](#index-for-images)
+![Swedish Provinces](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden.png) 
+[Swedish Provinces File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden.png) 
+![Swedish Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden_PC.png) 
+[Swedish Provinces (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden_PC.png) 
 
 ## Zürich
 [Back to top](#index-for-images) 
