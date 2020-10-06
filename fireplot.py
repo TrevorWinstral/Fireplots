@@ -40,7 +40,7 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
     else:
         date = df.index[-1]
     if show_sum and not per_capita:
-        df.insert(loc=0, column='SUM', value=df.sum(axis=1))
+        df.insert(loc=0, column='All Regions', value=df.sum(axis=1))
 
     # main part, define color boundaries and colors
     try:
@@ -432,6 +432,49 @@ def World(partitions=0):
     else:
         fireplot(df, country='World', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Countries', legend=True)
 
+def Switzerland():
+    print('Creating Fireplot for Switzerland')
+    df = pd.read_csv('https://raw.githubusercontent.com/openZH/covid_19/master/COVID19_Fallzahlen_CH_total_v2.csv')
+    df = df.pivot(index='date', columns='abbreviation_canton_and_fl', values='ncumul_conf')
+    df[df.columns] = df[df.columns].fillna(method='ffill').fillna(0).diff().fillna(0).astype(int)
+
+    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].map(strptm).astype(str)
+    df=df.groupby(['WOY']).sum()
+    df = df[df.tail(7).sum().sort_values(ascending=False).index]
+    print(df)
+    
+    fireplot(df, country='Switzerland', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Cantons', legend=True)
+
+def Switzerland_PC():
+    print('Creating Fireplot for Switzerland (Per Capita)')
+    pop = pd.DataFrame(pd.read_html('https://en.wikipedia.org/wiki/Cantons_of_Switzerland')[1])[['Code', 'Population[Note 3]']]
+
+    pop_dict_list=pop.to_dict(orient='records')
+    pop_dict={}
+    for d in pop_dict_list:
+        state = d['Code'].strip()
+        pop_dict[state]=int(d['Population[Note 3]'][:-4].replace(',',''))
+    pop_dict['FL'] = 38749
+
+    df = pd.read_csv('https://raw.githubusercontent.com/openZH/covid_19/master/COVID19_Fallzahlen_CH_total_v2.csv')
+    df = df.pivot(index='date', columns='abbreviation_canton_and_fl', values='ncumul_conf')
+    df[df.columns] = df[df.columns].fillna(method='ffill').fillna(0).diff().fillna(0).astype(int)
+    def divide_by_pop(x):
+        return (x/pop_dict[x.name]) * 10000
+    df = df[df.columns].apply(divide_by_pop, axis=0)
+
+    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].map(strptm).astype(str)
+    df=df.groupby(['WOY']).sum()
+    df = df[df.tail(7).sum().sort_values(ascending=False).index]
+    
+    df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
+    print(df)
+    fireplot(df, country='Switzerland', Title='Fireplot Switzerland (Cases per 10k persons)',  grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Cantons', legend=True, per_capita=True)
+
 
 def Zurich():
     print('Creating Fireplot for Zürich (Age Groups)')
@@ -558,7 +601,7 @@ if __name__ == "__main__":
     if PARALLEL:
         print('Using Parallel')
         arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
-        functions = [Australia, Australia_PC, Brazil, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC Zurich]
+        functions = [Australia, Australia_PC, Brazil, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich]
         for f in functions:
             if f in arguments:
                 for kwarg in arguments[f]:
@@ -584,6 +627,8 @@ if __name__ == "__main__":
         #India() # Data Incomplete
         #Europe()
         #World()
+        #Switzerland()
+        #Switzerland_PC()
         #Zurich()
         #Sweden()
         #Sweden_PC()

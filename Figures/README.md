@@ -6,7 +6,8 @@ Repository to generate fireplots every day for ECV. Click [here](https://TrevorW
 [European Countries](#european-countries) \
 [Italian Provinces](#italian-provinces) \
 [US States](#usa) \
-[Swedish Provinces](#sweden)
+[Swedish Provinces](#sweden) \
+[Swiss Cantons](#switzerland) \
 [Zürich (by Age Groups)](#zürich) 
 
 ## Australia
@@ -56,6 +57,13 @@ Repository to generate fireplots every day for ECV. Click [here](https://TrevorW
 [Swedish Provinces File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden.png) 
 ![Swedish Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden_PC.png) 
 [Swedish Provinces (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden_PC.png) 
+
+## Switzerland
+[Back to top](#index-for-images)
+![Swiss Provinces](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switerland.png) 
+[Swiss Provinces File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switerland.png) 
+![Swiss Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switerland_PC.png) 
+[Swiss Provinces (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switerland_PC.png) 
 
 ## Zürich
 [Back to top](#index-for-images) 

@@ -15,4 +15,6 @@ US States: [Group 1](https://trevorwinstral.github.io/Fireplots/Figures/Fire_USA
 US States: [Group 1 (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_USA_Partition_1_PC.png), [Group 2 (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_USA_Partition_2_PC.png), [Group 3 (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_USA_Partition_3_PC.png) \
 [Swedish Provinces](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden.png) \
 [Swedish Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden_PC.png) \
+[Swiss Cantons](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switzerland.png) \
+[Swiss Cantons (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switzerland_PC.png) \
 [Zürich (by Age Groups)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Zürich.png) 
