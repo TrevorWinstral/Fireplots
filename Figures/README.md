@@ -60,10 +60,10 @@ Repository to generate fireplots every day for ECV. Click [here](https://TrevorW
 
 ## Switzerland
 [Back to top](#index-for-images)
-![Swiss Provinces](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switerland.png) 
-[Swiss Provinces File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switerland.png) 
-![Swiss Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switerland_PC.png) 
-[Swiss Provinces (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switerland_PC.png) 
+![Swiss Provinces](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switzerland.png) 
+[Swiss Provinces File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switzerland.png) 
+![Swiss Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switzerland_PC.png) 
+[Swiss Provinces (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switzerland_PC.png) 
 
 ## Zürich
 [Back to top](#index-for-images) 
