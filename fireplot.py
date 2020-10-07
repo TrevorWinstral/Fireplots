@@ -22,7 +22,7 @@ def cell_format(num):
     return '%.1f%s' % (num, ['', 'K', 'M', 'G', 'T', 'P'][magnitude])
 
 
-def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False, fontsize=30, labelsize=30, titlesize=56, Title=None, show_sum=True, grouped_by_week=False, xlabel=None, caption=None, adjustment_factor_y=1.0, legend=False, per_capita=False, compress=True):
+def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False, fontsize=30, labelsize=35, titlesize=56, Title=None, show_sum=True, grouped_by_week=False, xlabel=None, caption=None, adjustment_factor_y=1.0, legend=False, per_capita=False, compress=True):
     # trimming the df
     if caption:
         plt.rc('text', usetex=True)
@@ -59,7 +59,7 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
         bounds=[-1, 0.001, 0.25, 0.5, 1.15, 2.25, 3.25, 10]
         bounds=[-1, 0.01, 2.5, 5, 11.5, 22.5, 32.5, 100]
     else:
-        bounds=[-100000,0.5,9.5,29.5,99.5,999.5,9999.5,100000]
+        bounds=[-1,0.5,9.5,29.5,99.5,999.5,9999.5,100000]
     cmap = colors.ListedColormap(['#2DFC00','#EBDB00','#FFB500','#B45F06', '#F40204','#BD0C21','#85183D'])
     
     if per_capita:
@@ -143,6 +143,8 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
     print(f'Finished with {country}. Date: {date}')
 
 
+def negative_to_zero(x):
+    return max(x,0)
 
 
 def Brazil():
@@ -150,13 +152,13 @@ def Brazil():
     df = pd.read_csv('https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-states.csv')
     df = df.pivot_table(index='date',columns='state',values='newCases').fillna(0).drop('TOTAL',axis=1).fillna(0).astype(int)
     df = df[df.sum().sort_values(ascending=False).index]
+    df[df.columns] = df[df.columns].applymap(negative_to_zero)
 
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df_c=df.groupby(['WOY']).sum()
     #print(df_c)
-    plt.rc('text', usetex=True)
     #fireplot(df_c, country='Brazil', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', adjustment_factor_y=3)
     fireplot(df_c, country='Brazil', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', adjustment_factor_y=1.1, legend=True)
 
@@ -168,6 +170,8 @@ def USA(partitions=None):
     df = df[df.iloc[-1].sort_values(ascending=False).index].diff()
     df.index.rename('US', inplace=True)
     df = df.fillna(0).astype(int)
+    df[df.columns] = df[df.columns].applymap(negative_to_zero)
+    #print(df)
     
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
@@ -220,17 +224,17 @@ def USA_by_region():
 
     add_pop = lambda s: pop_dict[s]
     df['Population'] = df['Region'].map(add_pop)
-    df['Per Capita Cases'] = df['cases']/df['Population'] * 10000
-
+    df['Per Capita Cases'] = (df['cases']/df['Population'] * 10000)
     df = df.pivot(index='date',columns='Region',values='Per Capita Cases').iloc[32:]
     df = df[df.iloc[-1].sort_values(ascending=False).index].diff().fillna(0)
+    df[df.columns] = df[df.columns].applymap(negative_to_zero)
+    
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
     df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
     fireplot(df, country='USA Regions', Title='Fireplot US Regions (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Regions', legend=True, per_capita=True)
-
 
 
 def USA_per_capita(partitions=None):
@@ -253,6 +257,8 @@ def USA_per_capita(partitions=None):
 
     df = df.pivot(index='date', columns='state', values='Per Capita Cases')
     df = df[df.iloc[-1].sort_values(ascending=False).index].diff().fillna(0)
+    df[df.columns] = df[df.columns].applymap(negative_to_zero)
+    
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
@@ -330,6 +336,7 @@ def Italy():
     # df.data = pd.to_datetime(df.data)
     df = df.pivot_table(index='data',columns='denominazione_regione',values='nuovi_positivi')
     df = df[df.sum().sort_values(ascending=False).index]
+    df[df.columns] = df[df.columns].applymap(negative_to_zero)
 
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
@@ -369,6 +376,8 @@ def Italy_PC():
 
     df = df.pivot(index='data', columns='denominazione_regione', values='Per Capita Cases')
     df = df[df.iloc[-1].sort_values(ascending=False).index].diff().fillna(0)
+    df[df.columns] = df[df.columns].applymap(negative_to_zero)
+    
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
@@ -437,13 +446,14 @@ def Switzerland():
     df = pd.read_csv('https://raw.githubusercontent.com/openZH/covid_19/master/COVID19_Fallzahlen_CH_total_v2.csv')
     df = df.pivot(index='date', columns='abbreviation_canton_and_fl', values='ncumul_conf')
     df[df.columns] = df[df.columns].fillna(method='ffill').fillna(0).diff().fillna(0).astype(int)
+    df[df.columns] = df[df.columns].applymap(negative_to_zero)
 
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
     df = df[df.tail(7).sum().sort_values(ascending=False).index]
-    print(df)
+    #print(df)
     
     fireplot(df, country='Switzerland', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Cantons', legend=True)
 
@@ -464,6 +474,7 @@ def Switzerland_PC():
     def divide_by_pop(x):
         return (x/pop_dict[x.name]) * 10000
     df = df[df.columns].apply(divide_by_pop, axis=0)
+    df[df.columns] = df[df.columns].applymap(negative_to_zero)
 
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
@@ -472,7 +483,7 @@ def Switzerland_PC():
     df = df[df.tail(7).sum().sort_values(ascending=False).index]
     
     df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
-    print(df)
+    #print(df)
     fireplot(df, country='Switzerland', Title='Fireplot Switzerland (Cases per 10k persons)',  grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Cantons', legend=True, per_capita=True)
 
 
@@ -494,6 +505,8 @@ def Zurich():
 def Sweden():    
     print('Creating Fireplot for Sweden')
     df = pd.read_excel('https://fohm.maps.arcgis.com/sharing/rest/content/items/b5e7488e117749c19881cce45db13f7e/data').drop('Totalt_antal_fall', axis=1)
+    df[df.columns[1:]] = df[df.columns[1:]].applymap(negative_to_zero)
+    
     df['WOY'] = pd.to_datetime(df['Statistikdatum'], format='%Y-%m-%d').map(lambda x: str(x.weekofyear)) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
@@ -527,6 +540,8 @@ def Sweden_PC():
     df.index = df['Statistikdatum']
     df = df.drop('Statistikdatum', axis=1)
     df = df.apply(test)
+    df[df.columns[1:]] = df[df.columns[1:]].applymap(negative_to_zero)
+    print(df)
     df = df[df.iloc[-1].sort_values(ascending=False).index].fillna(0)
 
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
@@ -537,7 +552,7 @@ def Sweden_PC():
     #df = df[df.tail(7).sum().sort_values(ascending=False).index]
     df = df[df.sum().sort_values(ascending=False).index]
 
-    print(df)
+    #print(df)
     fireplot(df, country='Sweden', Title='Fireplot Sweden (Cases per 10k persons)',  grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True)
 
     return   
@@ -547,6 +562,7 @@ def Australia():
     print('Creating Fireplot for Australia')
     df = pd.read_csv('https://raw.githubusercontent.com/M3IT/COVID-19_Data/master/Data/COVID_AU_state.csv')
     df=df.pivot_table(index='date', columns='state', values='confirmed')
+    df[df.columns] = df[df.columns].applymap(negative_to_zero)
 
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
@@ -554,7 +570,7 @@ def Australia():
     df=df.groupby(['WOY']).sum()
     df = df[df.sum().sort_values(ascending=False).index]
 
-    print(df) 
+    #print(df) 
     fireplot(df, country='Australia', Title='Fireplot Australia (Cases)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True)
 
 def Australia_PC():
@@ -572,6 +588,8 @@ def Australia_PC():
 
     df = pd.read_csv('https://raw.githubusercontent.com/M3IT/COVID-19_Data/master/Data/COVID_AU_state.csv')
     df=df.pivot_table(index='date', columns='state', values='confirmed')
+    df[df.columns] = df[df.columns].applymap(negative_to_zero)
+    
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
@@ -596,7 +614,7 @@ def compression():
 
 
 if __name__ == "__main__":
-    PARALLEL = True
+    PARALLEL = False
 
     if PARALLEL:
         print('Using Parallel')
@@ -616,10 +634,10 @@ if __name__ == "__main__":
         print('Not using Parallel')
         #Brazil()
         #Russia() # Data wierd
-        #USA_per_capita(partitions=0)
-        #USA_per_capita(partitions=3)
         #USA(partitions=0)
         #USA_by_region()
+        #USA_per_capita(partitions=0)
+        #USA_per_capita(partitions=3)
         #Spain() # Data Incomplete
         #UK() # Data Incomplete
         #Italy()
