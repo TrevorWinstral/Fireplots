@@ -614,7 +614,7 @@ def compression():
 
 
 if __name__ == "__main__":
-    PARALLEL = False
+    PARALLEL = True
 
     if PARALLEL:
         print('Using Parallel')
