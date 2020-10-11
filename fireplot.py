@@ -8,6 +8,7 @@ import matplotlib.ticker as ticker
 from datetime import datetime
 import multiprocessing
 import matplotlib.transforms as transforms
+import re
 
 import tiny
 import os
@@ -22,7 +23,7 @@ def cell_format(num):
     return '%.1f%s' % (num, ['', 'K', 'M', 'G', 'T', 'P'][magnitude])
 
 
-def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False, fontsize=30, labelsize=35, titlesize=56, Title=None, show_sum=True, grouped_by_week=False, xlabel=None, caption=None, adjustment_factor_y=1.0, legend=False, per_capita=False, compress=True):
+def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False, fontsize=30, labelsize=35, titlesize=56, Title=None, show_sum=True, grouped_by_week=False, xlabel=None, caption=None, adjustment_factor_y=1.0, legend=False, per_capita=False, compress=True, w_rat=1.5):
     # trimming the df
     if caption:
         plt.rc('text', usetex=True)
@@ -47,7 +48,7 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
         w_ratio = 1.5 if df.max().max() < 1000 else 2.5
     except TypeError: #For when we are using per capita numbers
         w_ratio = 1.5
-    w_ratio = 1.5
+    w_ratio = w_rat # I am aware this is stupid
     
     y_size = int(df.shape[0]*adjustment_factor_y)
     fig, ax = plt.subplots(figsize=(int(df.shape[1]*w_ratio), y_size)) # add some extra height if needed
@@ -161,6 +162,94 @@ def Brazil():
     #print(df_c)
     #fireplot(df_c, country='Brazil', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', adjustment_factor_y=3)
     fireplot(df_c, country='Brazil', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', adjustment_factor_y=1.1, legend=True)
+
+
+def Czechia_Age():
+    print('Working on Czechia (Age)')
+    df = pd.read_csv('https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/osoby.csv')
+    age_groups= [(0,15), (15,20), (20,30), (30,40), (40,50), (50,60), (60,70), (70,80), (80,200)]
+    translate = lambda s: f'{s[0]}-{s[1]}' if s[1]<200 else f'{s[0]}+'
+    def grouping(age):
+        for grp in age_groups:
+            if grp[0] <= age < grp[1]:
+                return translate(grp)
+    age_dict = {age:grouping(age) for age in range(0,150)}
+    df['Group'] = df['vek'].map(age_dict)
+    df['Count'] = 1
+    week = lambda x : x.weekofyear
+    df['WOY'] = pd.to_datetime(df['datum'], format='%Y/%m/%d').map(week).astype(int)
+    df = df.groupby(by=['WOY', 'Group']).sum()[['Count']].reset_index()
+    
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].astype(str).map(strptm)
+    df = df.pivot(index='WOY', columns='Group', values='Count').fillna(0).astype(int)
+    #print(df)
+    fireplot(df, country='Czechia_By_Age', Title='Czechia (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True)
+
+    
+
+
+def Germany():
+    ger=pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/f10774f1c63e40168479a1feb6c7ca74/data')
+    
+    # By Age
+    print('Working on Germany (By Age)')
+    df = ger[['Altersgruppe', 'Refdatum', 'AnzahlFall']]
+    df.index = df['Refdatum'].map(lambda s: s[:-9])
+
+    df['WOY'] = pd.to_datetime(df.index, format='%Y/%m/%d').weekofyear.astype(int)
+    df = df.groupby(by=['WOY', 'Altersgruppe']).sum().reset_index()
+    df['Altersgruppe'] = df['Altersgruppe'].map(lambda s: s.replace('A', ''))
+    df = df.pivot(index='WOY', columns='Altersgruppe', values='AnzahlFall').sort_index()
+    df.index = df.index.astype(str)
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df.index = df.index.map(strptm)
+    df = df.fillna(0).astype(int)
+    fireplot(df, country='Germany_By_Age', Title='Germany (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, w_rat=2.5)
+
+    # By Province
+    print('Working on Germany (By Province)')
+    df = ger[['Bundesland', 'Refdatum', 'AnzahlFall']]
+    df.index = df['Refdatum'].map(lambda s: s[:-9])
+
+    df['WOY'] = pd.to_datetime(df.index, format='%Y/%m/%d').weekofyear.astype(int)
+    df = df.groupby(by=['WOY', 'Bundesland']).sum().reset_index()
+    df = df.pivot(index='WOY', columns='Bundesland', values='AnzahlFall').sort_index()
+    df = df[df.tail(7).sum().sort_values(ascending=False).index]
+    df.index = df.index.astype(str)
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df.index = df.index.map(strptm)
+    df = df.fillna(0).astype(int)
+    fireplot(df, country='Germany', Title='Germany (Cases)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True,)
+
+    # Province Per Capita
+    print('Working on Germany (Per Capita)')
+    pop = pd.DataFrame(pd.read_html('https://de.wikipedia.org/wiki/Land_(Deutschland)')[0])[['Land', 'Ein-wohner(Mio.)[12]']]
+    pop.rename(columns={'Ein-wohner(Mio.)[12]':'Population', 'Land':'State'}, inplace=True)
+    
+    pop_dict_list=pop.to_dict(orient='records')
+    pop_dict={}
+    for d in pop_dict_list:
+        state = d['State']
+        pop_dict[state]=d['Population'] * 1000 # Times 1 thousand
+
+    #print(pop_dict)
+    df = ger[['Bundesland', 'Refdatum', 'AnzahlFall']]
+    df['AnzahlFall'] = df['AnzahlFall'].map(negative_to_zero)
+    df.index = df['Refdatum'].map(lambda s: s[:-9])
+
+    df['WOY'] = pd.to_datetime(df.index, format='%Y/%m/%d').weekofyear.astype(int)
+    df = df.groupby(by=['WOY', 'Bundesland']).sum().reset_index()
+    df = df.pivot(index='WOY', columns='Bundesland', values='AnzahlFall').sort_index()
+    df.index = df.index.astype(str)
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df.index = df.index.map(strptm)
+    df = df.fillna(0).astype(int)
+    add_pop = lambda x: (x/pop_dict[x.name])*10000
+    df[df.columns] = df[df.columns].apply(add_pop)
+    df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
+    df = df[df.tail(7).sum().sort_values(ascending=False).index]
+    fireplot(df, country='Germany', Title='Germany (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True)
 
 
 def USA(partitions=None):
@@ -278,6 +367,25 @@ def USA_per_capita(partitions=None):
     else:
         #fireplot(df.iloc[:,:20], country='USA', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', adjustment_factor_y=16, caption_location_y=0.01)
         fireplot(df, country='USA', Title='Fireplot USA (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', legend=True, per_capita=True, start_time='2020-03-16')
+
+
+def Florida_Age():
+    print('Working on Florida (By Age)')
+    df = pd.read_csv('https://www.arcgis.com/sharing/rest/content/items/4cc62b3a510949c7a8167f6baa3e069d/data')
+    df['Age_group']=df['Age_group'].map(lambda s: s.replace(' years', ''))
+    df['Count'] = 1
+    df=df.groupby(['Case_', 'Age_group']).sum()['Count']
+    df=df.reset_index().pivot(index='Case_', columns='Age_group', values='Count').fillna(0).astype(int)
+    df.index = df.index.map(lambda s: s.split(' ')[0]) # Get rid of timestamp in date
+
+    df['WOY'] = pd.to_datetime(df.index, format='%m/%d/%Y').weekofyear.astype(str) # week of year column
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].map(strptm).astype(str)
+    df=df.groupby(['WOY']).sum()[['0-4', '15-24', '25-34', '35-44', '45-54', '5-14', '55-64', '65-74','75-84', '85+', 'Unknown']]
+    #print(df)
+
+    fireplot(df, country='Florida', Title='Florida (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True)
+
 
 
 def Russia():
@@ -563,6 +671,8 @@ def Australia():
     df = pd.read_csv('https://raw.githubusercontent.com/M3IT/COVID-19_Data/master/Data/COVID_AU_state.csv')
     df=df.pivot_table(index='date', columns='state', values='confirmed')
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
+    print(df)
+    quit()
 
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
@@ -619,7 +729,7 @@ if __name__ == "__main__":
     if PARALLEL:
         print('Using Parallel')
         arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
-        functions = [Australia, Australia_PC, Brazil, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich]
+        functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich]
         for f in functions:
             if f in arguments:
                 for kwarg in arguments[f]:
@@ -633,11 +743,14 @@ if __name__ == "__main__":
     else:
         print('Not using Parallel')
         #Brazil()
+        #Czechia_Age()
+        #Germany()
         #Russia() # Data wierd
         #USA(partitions=0)
         #USA_by_region()
         #USA_per_capita(partitions=0)
         #USA_per_capita(partitions=3)
+        #Florida_Age()
         #Spain() # Data Incomplete
         #UK() # Data Incomplete
         #Italy()

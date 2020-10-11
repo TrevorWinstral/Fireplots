@@ -3,6 +3,8 @@
 Repository to generate fireplots every day for ECV. Click [here](https://TrevorWinstral.github.io/Fireplots) to get list of links to raw files. Click the link to jump to the image. \
 [Australian Provinces](#australia) \
 [Brazilian States](#brazil) \
+[Czechia](#czechia) \
+[Germany](#germany) \
 [European Countries](#european-countries) \
 [Italian Provinces](#italian-provinces) \
 [US States](#usa) \
@@ -21,6 +23,20 @@ Repository to generate fireplots every day for ECV. Click [here](https://TrevorW
 [Back to top](#index-for-images) 
 ![Brazilian States](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Brazil.png) 
 [Brazilian States File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Brazil.png) 
+
+## Czechia
+[Back to top](#index-for-images) 
+![Czech Age Groups](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Czechia_By_Age.png) 
+[Czech Age Groups File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Czechia_By_Age.png) 
+
+## Germany
+[Back to top](#index-for-images) 
+![German States](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Germany.png) 
+[German States File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Germany.png)
+![German States (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Germany_PC.png) 
+[German States (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Germany_PC.png) 
+![German Age Groups](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Germany_By_Age.png) 
+[German Age Groups File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Germany_By_Age.png) 
 
 ## European Countries
 [Back to top](#index-for-images) 
