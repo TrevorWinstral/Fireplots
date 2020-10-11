@@ -649,7 +649,7 @@ def Sweden_PC():
     df = df.drop('Statistikdatum', axis=1)
     df = df.apply(test)
     df[df.columns[1:]] = df[df.columns[1:]].applymap(negative_to_zero)
-    print(df)
+    #print(df)
     df = df[df.iloc[-1].sort_values(ascending=False).index].fillna(0)
 
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
@@ -671,8 +671,8 @@ def Australia():
     df = pd.read_csv('https://raw.githubusercontent.com/M3IT/COVID-19_Data/master/Data/COVID_AU_state.csv')
     df=df.pivot_table(index='date', columns='state', values='confirmed')
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
-    print(df)
-    quit()
+    #print(df)
+    #quit()
 
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
@@ -730,15 +730,18 @@ if __name__ == "__main__":
         print('Using Parallel')
         arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
         functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich]
-        for f in functions:
-            if f in arguments:
-                for kwarg in arguments[f]:
-                    p = multiprocessing.Process(target=f, kwargs=kwarg)
+        Group_Size = 5
+        Partitions = int(len(functions)/Group_Size)+1
+        for partition in range(Partitions):
+            for f in functions[partition*Group_Size: (partition+1)*Group_Size-1]:
+                if f in arguments:
+                    for kwarg in arguments[f]:
+                        p = multiprocessing.Process(target=f, kwargs=kwarg)
+                        p.start()
+                else:
+                    p = multiprocessing.Process(target=f)
                     p.start()
-            else:
-                p = multiprocessing.Process(target=f)
-                p.start()
-        p.join()
+            p.join()
 
     else:
         print('Not using Parallel')
@@ -763,7 +766,7 @@ if __name__ == "__main__":
         #Zurich()
         #Sweden()
         #Sweden_PC()
-        #Australia()
+        Australia()
         #Australia_PC()
 
     #compression()
