@@ -206,7 +206,7 @@ def Germany():
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df.index = df.index.map(strptm)
     df = df.fillna(0).astype(int)
-    fireplot(df, country='Germany_By_Age', Title='Germany (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, w_rat=2.5)
+    fireplot(df, country='Germany_By_Age', Title='Germany (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, w_rat=1.8)
 
     # By Province
     print('Working on Germany (By Province)')
