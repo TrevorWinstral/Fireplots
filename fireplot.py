@@ -201,6 +201,7 @@ def Germany():
     df = df.groupby(by=['WOY', 'Altersgruppe']).sum().reset_index()
     df['Altersgruppe'] = df['Altersgruppe'].map(lambda s: s.replace('A', ''))
     df = df.pivot(index='WOY', columns='Altersgruppe', values='AnzahlFall').sort_index()
+    df.rename(columns={'00-04':'0-4', '05-14':'5-14', 'unbekannt':'unknown'}, inplace=True)
     df.index = df.index.astype(str)
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df.index = df.index.map(strptm)
@@ -712,7 +713,7 @@ def Australia_PC():
     df = df[df.sum().sort_values(ascending=False).index]
     df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
 
-    fireplot(df, country='Australia', Title='Fireplot Australia (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True)
+    fireplot(df, country='Australia', Title='Fireplot Australia (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True, w_rat=2.0)
 
 
 
@@ -747,7 +748,7 @@ if __name__ == "__main__":
         print('Not using Parallel')
         #Brazil()
         #Czechia_Age()
-        #Germany()
+        Germany()
         #Russia() # Data wierd
         #USA(partitions=0)
         #USA_by_region()
@@ -766,7 +767,7 @@ if __name__ == "__main__":
         #Zurich()
         #Sweden()
         #Sweden_PC()
-        Australia()
+        #Australia()
         #Australia_PC()
 
     #compression()
