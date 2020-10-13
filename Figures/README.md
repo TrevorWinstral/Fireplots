@@ -4,6 +4,7 @@ Repository to generate fireplots every day for ECV. Click [here](https://TrevorW
 [Australian Provinces](#australia) \
 [Brazilian States](#brazil) \
 [Czechia](#czechia) \
+[G20 and Schengen Countries](#g20-and-schengen) \
 [Germany](#germany) \
 [European Countries](#european-countries) \
 [Italian Provinces](#italian-provinces) \
@@ -28,6 +29,11 @@ Repository to generate fireplots every day for ECV. Click [here](https://TrevorW
 [Back to top](#index-for-images) 
 ![Czech Age Groups](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Czechia_By_Age.png) 
 [Czech Age Groups File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Czechia_By_Age.png) 
+
+## G20 and Schengen
+[Back to top](#index-for-images) 
+![G20 and Schengen Countries (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Key_Countries_PC.png) 
+[G20 and Schengen Countries (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Key_Countries_PC.png) 
 
 ## Germany
 [Back to top](#index-for-images) 
@@ -66,6 +72,8 @@ Repository to generate fireplots every day for ECV. Click [here](https://TrevorW
 [Group 2 (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_USA_Partition_2_PC.png) 
 ![Group 3 (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_USA_Partition_3_PC.png) 
 [Group 3 (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_USA_Partition_3_PC.png) 
+![Florida (Age Groups)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Florida.png) 
+[Florida (Age Groups) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Florida.png) 
 
 ## Sweden
 [Back to top](#index-for-images)

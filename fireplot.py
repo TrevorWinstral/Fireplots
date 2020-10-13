@@ -23,7 +23,7 @@ def cell_format(num):
     return '%.1f%s' % (num, ['', 'K', 'M', 'G', 'T', 'P'][magnitude])
 
 
-def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False, fontsize=30, labelsize=35, titlesize=56, Title=None, show_sum=True, grouped_by_week=False, xlabel=None, caption=None, adjustment_factor_y=1.0, legend=False, per_capita=False, compress=True, w_rat=1.5):
+def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False, fontsize=30, labelsize=35, titlesize=56, Title=None, show_sum=True, grouped_by_week=False, xlabel=None, caption=None, adjustment_factor_y=1.0, legend=False, per_capita=False, compress=True, w_rat=1.5, age_groups=False):
     # trimming the df
     if caption:
         plt.rc('text', usetex=True)
@@ -41,7 +41,8 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
     else:
         date = df.index[-1]
     if show_sum and not per_capita:
-        df.insert(loc=0, column='All Regions', value=df.sum(axis=1))
+        col_name = 'All Ages' if age_groups else 'All Regions'
+        df.insert(loc=0, column=col_name, value=df.sum(axis=1))
 
     # main part, define color boundaries and colors
     try:
@@ -167,7 +168,7 @@ def Brazil():
 def Czechia_Age():
     print('Working on Czechia (Age)')
     df = pd.read_csv('https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/osoby.csv')
-    age_groups= [(0,15), (15,20), (20,30), (30,40), (40,50), (50,60), (60,70), (70,80), (80,200)]
+    age_groups= [(0,10), (10,15), (15,20), (20,25), (25,30), (30,35), (35,40), (40,45), (45,50), (50,55), (55,60), (60,65), (65,70), (70,75), (75,80), (80,200)]
     translate = lambda s: f'{s[0]}-{s[1]}' if s[1]<200 else f'{s[0]}+'
     def grouping(age):
         for grp in age_groups:
@@ -184,9 +185,40 @@ def Czechia_Age():
     df['WOY'] = df['WOY'].astype(str).map(strptm)
     df = df.pivot(index='WOY', columns='Group', values='Count').fillna(0).astype(int)
     #print(df)
-    fireplot(df, country='Czechia_By_Age', Title='Czechia (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True)
+    fireplot(df, country='Czechia_By_Age', Title='Czechia (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, age_groups=True)
 
-    
+def G20(partitions=0):
+    print('Working on G20 (per Capita)')
+    df = pd.read_csv('https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv')
+    countries = ['Bulgaria', 'Romania', 'Cyprus', 'Greece', 'Denmark', 'Netherlands', 'Sweden', 'Estonia', 'Hungary', 'Iceland', 'Czechia', 'Indonesia', 'Liechtenstein', 'France', 'Lithuania', 'Mexico', 'Brazil', 'Latvia', 'China', 'Switzerland', 'Ireland', 'Austria', 'Portugal', 'Norway', 'Spain', 'Australia', 'United Kingdom', 'Slovakia', 'Italy', 'Finland', 'Argentina', 'Canada', 'South Africa', 'Saudi Arabia', 'Luxembourg', 'Russia', 'Japan', 'Slovenia', 'India', 'US', 'Belgium', 'Korea, South', 'Turkey', 'Germany', 'Poland', 'Malta']
+    df = df.pivot_table(index='Date', columns='Country', values='Confirmed')[countries].diff().fillna(0).astype(int)
+
+    pop = pd.read_csv('https://raw.githubusercontent.com/datasets/population/master/data/population.csv').pivot(index='Year', columns='Country Name', values='Value').rename(columns={'United States':'US', 'Czech Republic':'Czechia', 'Korea, Rep.':'Korea, South', 'Russian Federation':'Russia', 'Slovak Republic':'Slovakia'})
+    pop = pop[countries].fillna(method='ffill').T[[2018]].reset_index()
+
+    pop_dict_list=pop.to_dict(orient='records')
+    pop_dict={}
+    for d in pop_dict_list:
+        state = d['Country Name']
+        pop_dict[state]=d[2018]
+  
+    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].map(strptm).astype(str)
+    df = df.groupby(by='WOY').sum()
+    df = df.apply(lambda x: (x/pop_dict[x.name])*10000)
+    df = df[df.tail(7).sum().sort_values(ascending=False).index]
+    df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
+
+    if partitions>0:
+        num_cols = len(df.columns)
+        partition_size = int(num_cols/partitions)
+        for s in range(partitions):
+            start = partition_size*s
+            end = partition_size*(s+1) + 1
+            fireplot(df.iloc[:, start:end], country=f'Key Countries {s+1}', Title=f'G20 + Schengen Countries Partition {s+1} (Cases per 10k Persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel=f'Countries (Partition {s+1})', legend=True, per_capita=True)
+    else:
+        fireplot(df, country='Key Countries', Title='G20 + Schengen Countries (Cases per 10k Persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Countries', legend=True, per_capita=True)
 
 
 def Germany():
@@ -206,7 +238,7 @@ def Germany():
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df.index = df.index.map(strptm)
     df = df.fillna(0).astype(int)
-    fireplot(df, country='Germany_By_Age', Title='Germany (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, w_rat=1.8)
+    fireplot(df, country='Germany_By_Age', Title='Germany (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, w_rat=1.8, age_groups=True)
 
     # By Province
     print('Working on Germany (By Province)')
@@ -353,8 +385,8 @@ def USA_per_capita(partitions=None):
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
-    df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
     df = df[df.tail(7).sum().sort_values(ascending=False).index]
+    df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
     #df = df[df.sum().sort_values(ascending=False).index]
 
     
@@ -385,7 +417,7 @@ def Florida_Age():
     df=df.groupby(['WOY']).sum()[['0-4', '15-24', '25-34', '35-44', '45-54', '5-14', '55-64', '65-74','75-84', '85+', 'Unknown']]
     #print(df)
 
-    fireplot(df, country='Florida', Title='Florida (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True)
+    fireplot(df, country='Florida', Title='Florida (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, age_groups=True)
 
 
 
@@ -540,7 +572,7 @@ def World(partitions=0):
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
     #print(df)   
-    if partitions>0:
+    if partitions>1:
         num_cols = len(df.columns)
         partition_size = int(num_cols/partitions)
         for s in range(partitions):
@@ -608,7 +640,7 @@ def Zurich():
     df=df.pivot(index='WOY', columns='AgeYearCat', values='NewConfCases').drop(['unbekannt','100+'], axis=1).fillna(0).astype(int)
     #print(df)
 
-    fireplot(df, country='Zürich', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True)
+    fireplot(df, country='Zürich', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, age_groups=True)
 
 
 def Sweden():    
@@ -730,11 +762,11 @@ if __name__ == "__main__":
     if PARALLEL:
         print('Using Parallel')
         arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
-        functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich]
+        functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, G20, Florida_Age, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich]
         Group_Size = 5
         Partitions = int(len(functions)/Group_Size)+1
         for partition in range(Partitions):
-            for f in functions[partition*Group_Size: (partition+1)*Group_Size-1]:
+            for f in functions[partition*Group_Size: (partition+1)*Group_Size]:
                 if f in arguments:
                     for kwarg in arguments[f]:
                         p = multiprocessing.Process(target=f, kwargs=kwarg)
@@ -748,7 +780,8 @@ if __name__ == "__main__":
         print('Not using Parallel')
         #Brazil()
         #Czechia_Age()
-        Germany()
+        #Germany()
+        #G20(partitions=0)
         #Russia() # Data wierd
         #USA(partitions=0)
         #USA_by_region()
