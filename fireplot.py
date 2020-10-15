@@ -8,7 +8,7 @@ import matplotlib.ticker as ticker
 from datetime import datetime
 import multiprocessing
 import matplotlib.transforms as transforms
-import re
+import requests, json
 
 import tiny
 import os
@@ -181,7 +181,7 @@ def Czechia_Age():
     df['WOY'] = pd.to_datetime(df['datum'], format='%Y/%m/%d').map(week).astype(int)
     df = df.groupby(by=['WOY', 'Group']).sum()[['Count']].reset_index()
     
-    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    strptm = lambda s: datetime.strptime('2020-'+s+'-0', "%Y-%W-%w")
     df['WOY'] = df['WOY'].astype(str).map(strptm)
     df = df.pivot(index='WOY', columns='Group', values='Count').fillna(0).astype(int)
     #print(df)
@@ -414,7 +414,7 @@ def Florida_Age():
     df['WOY'] = pd.to_datetime(df.index, format='%m/%d/%Y').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
-    df=df.groupby(['WOY']).sum()[['0-4', '15-24', '25-34', '35-44', '45-54', '5-14', '55-64', '65-74','75-84', '85+', 'Unknown']]
+    df=df.groupby(['WOY']).sum()[['0-4', '5-14', '15-24', '25-34', '35-44', '45-54', '55-64', '65-74','75-84', '85+', 'Unknown']]
     #print(df)
 
     fireplot(df, country='Florida', Title='Florida (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, age_groups=True)
@@ -698,6 +698,49 @@ def Sweden_PC():
 
     return   
 
+def Sweden_Age():
+    print('Creating Fireplot for Sweden (Age Groups)')
+
+    # Get File List
+    r = requests.get('https://api.github.com/repos/adamaltmejd/covid/git/trees/14a910ab0047035d1ad324b7e7a112e1973401f4')
+    j = json.loads(r.content.decode())
+    file_names = [i['path'] for i in j['tree']][1:85:7] + [i['path'] for i in j['tree']][85::5] # This should give us the totals so far, now we need to get the data from each xlsx file on that day
+    # We go by 7 then by 5 because they stop reporting on weekends
+
+    # Get the files and throw em together into one dataframe
+    df =pd.read_excel('https://raw.githubusercontent.com/adamaltmejd/covid/master/data/FHM/'+file_names[0], sheet_name='Totalt antal per åldersgrupp').rename(columns={'Totalt_antal_fall':file_names[0][-15:-5]})
+    df.index = df['Åldersgrupp']
+    df = df[[file_names[0][-15:-5]]]
+    the_big_dict= df.to_dict()
+    for fname in file_names[1:]:
+        # Using dicts here should make this slightly faster
+        date=fname[-15:-5]
+        df_temp = pd.read_excel('https://raw.githubusercontent.com/adamaltmejd/covid/master/data/FHM/'+fname, sheet_name='Totalt antal per åldersgrupp').rename(columns={'Totalt_antal_fall':date})
+        df_temp.index = df_temp['Åldersgrupp']
+        the_big_dict[date] = df_temp.to_dict()[date]
+        #df = df.join(df_temp[[fname[-15:-5]]])
+
+    df=pd.DataFrame(data=the_big_dict).fillna(0)
+    # Some formatting
+    df.loc['80+'] = df.loc[['Ålder_80_90', 'Ålder_90_plus', 'Ålder_80_89']].sum()
+    df = df.T.drop(['Ålder_80_90', 'Ålder_90_plus', 'Ålder_80_89'], axis=1).diff().fillna(0).astype(int)
+    df[df.columns] = df[df.columns].applymap(negative_to_zero)
+    df = df[['Ålder_0_9',  'Ålder_10_19',  'Ålder_20_29',  'Ålder_30_39',  'Ålder_40_49',  'Ålder_50_59',  'Ålder_60_69',  'Ålder_70_79', '80+',  'Uppgift saknas']]
+    renamer = lambda s: s.replace('Ålder_','').replace('_','-').replace('Uppgift saknas','Unkown')
+    df.rename(columns=renamer, inplace=True)
+
+    # Week of Year
+    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str)
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].map(strptm).astype(str)
+    #print(df)
+    df.index=df['WOY']
+    df.drop('WOY', axis=1, inplace=True)
+    #print(df)
+
+    fireplot(df, country='Sweden_By_Age', Title='Fireplot Sweden (Age Groups)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, age_groups=True)
+
+
 
 def Australia():
     print('Creating Fireplot for Australia')
@@ -762,7 +805,7 @@ if __name__ == "__main__":
     if PARALLEL:
         print('Using Parallel')
         arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
-        functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, G20, Florida_Age, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich]
+        functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, G20, Florida_Age, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich, Sweden_Age]
         Group_Size = 5
         Partitions = int(len(functions)/Group_Size)+1
         for partition in range(Partitions):
@@ -800,6 +843,7 @@ if __name__ == "__main__":
         #Zurich()
         #Sweden()
         #Sweden_PC()
+        #Sweden_Age()
         #Australia()
         #Australia_PC()
 

@@ -81,6 +81,8 @@ Repository to generate fireplots every day for ECV. Click [here](https://TrevorW
 [Swedish Provinces File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden.png) 
 ![Swedish Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden_PC.png) 
 [Swedish Provinces (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden_PC.png) 
+![Swedish Age Groups](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden_By_Age.png) 
+[Swedish Age Groups](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden_By_Age.png) 
 
 ## Switzerland
 [Back to top](#index-for-images)
