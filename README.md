@@ -7,9 +7,12 @@ These are direct links to files, go [here](/Fireplots/Figures) to browse the ima
 [Australian Provinces](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Australia.png) \
 [Australian Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Australia_PC.png) \
 [Brazilian States](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Brazil.png) \
-[Czechia (by Age Groups)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Czechia_By_Age.png) \
+[Czechia (Age Groups)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Czechia_By_Age.png) \
 [European Countries](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Europe.png) \
-[Florida (by Age Groups)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Florida.png) \
+[Netherlands Provinces](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Holland.png) \
+[Netherlands Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Holland_PC.png) \
+[Netherlands (Age Groups)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Holland_By_Age.png) \
+[Florida (Age Groups)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Florida.png) \
 [G20 + Schengen Countries (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Key_Countries_PC.png) \
 [German Provinces](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Germany.png) \
 [Germany (by Age Groups)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Germany_By_Age.png) \
@@ -24,4 +27,4 @@ US States: [Group 1 (Per Capita)](https://trevorwinstral.github.io/Fireplots/Fig
 [Swedish Age Groups](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Sweden_By_Age.png) \
 [Swiss Cantons](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switzerland.png) \
 [Swiss Cantons (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switzerland_PC.png) \
-[Zürich (by Age Groups)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Zürich.png) 
+[Zürich (Age Groups)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Zürich.png) 

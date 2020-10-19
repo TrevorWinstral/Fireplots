@@ -285,6 +285,43 @@ def Germany():
     fireplot(df, country='Germany', Title='Germany (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True)
 
 
+def Holland():
+    print('Working on Holland')
+    df = pd.read_csv('https://data.rivm.nl/covid-19/COVID-19_casus_landelijk.csv', delimiter=';').drop('Week_of_death', axis=1)
+    df['Count'] = 1
+    df['WOY'] = pd.to_datetime(df['Date_statistics'].copy(), format='%Y-%m-%d').map(lambda s: s.weekofyear).astype(str) # week of year column
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].map(strptm).astype(str)
+    age = df.groupby(by=['WOY', 'Agegroup']).sum()
+    df = df.groupby(by=['WOY', 'Province']).sum()
+
+    df = df.reset_index().pivot(index='WOY', columns='Province', values='Count').fillna(0).astype(int)
+    df = df[df.tail(7).sum().sort_values(ascending=False).index]
+    age = age.reset_index().pivot(index='WOY', columns='Agegroup', values='Count').fillna(0).astype(int)
+
+    print('Working on Holland (Cases)')
+    fireplot(df, country='Holland', Title='Netherlands (Cases)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True)
+    print('Working on Holland (Age Groups)')
+    fireplot(age, country='Holland_By_Age', Title='Netherlands (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, age_groups=True)
+
+    pop = pd.DataFrame(pd.read_html('https://en.wikipedia.org/wiki/Provinces_of_the_Netherlands')[2])[['Dutch name', 'Population[A][1]']]
+    pop.columns = pop.columns.get_level_values(0)
+    pop_dict_list=pop.to_dict(orient='records')
+    pop_dict={}
+    for d in pop_dict_list:
+        state = d['Dutch name'].replace(' ', '-')
+        pop_dict[state]=d['Population[A][1]'] 
+
+    divide_by_pop = lambda x : (x/pop_dict[x.name])*10000
+    df[df.columns]=df[df.columns].apply(divide_by_pop)
+    df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
+    df = df[df.tail(7).sum().sort_values(ascending=False).index]
+    
+    print('Working on Holland (Per Capita)')
+    fireplot(df, country='Holland', Title='Netherland (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True)
+
+
+
 def USA(partitions=None):
     print(f'Creating Fireplot for USA: Partitions={partitions}')
     df = pd.read_csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
@@ -800,13 +837,13 @@ def compression():
 
 
 if __name__ == "__main__":
-    PARALLEL = True
+    PARALLEL = False
 
     if PARALLEL:
         print('Using Parallel')
         arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
-        functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, G20, Florida_Age, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich, Sweden_Age]
-        Group_Size = 5
+        functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, G20, Holland, Florida_Age, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich, Sweden_Age]
+        Group_Size = 6
         Partitions = int(len(functions)/Group_Size)+1
         for partition in range(Partitions):
             for f in functions[partition*Group_Size: (partition+1)*Group_Size]:
@@ -825,6 +862,7 @@ if __name__ == "__main__":
         #Czechia_Age()
         #Germany()
         #G20(partitions=0)
+        #Holland()
         #Russia() # Data wierd
         #USA(partitions=0)
         #USA_by_region()

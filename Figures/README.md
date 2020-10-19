@@ -7,11 +7,11 @@ Repository to generate fireplots every day for ECV. Click [here](https://TrevorW
 [G20 and Schengen Countries](#g20-and-schengen) \
 [Germany](#germany) \
 [European Countries](#european-countries) \
+[Netherlands](#netherlands) \
 [Italian Provinces](#italian-provinces) \
 [US States](#usa) \
 [Swedish Provinces](#sweden) \
-[Swiss Cantons](#switzerland) \
-[Zürich (by Age Groups)](#zürich) 
+[Swiss Cantons](#switzerland) 
 
 ## Australia
 [Back to top](#index-for-images)
@@ -48,6 +48,15 @@ Repository to generate fireplots every day for ECV. Click [here](https://TrevorW
 [Back to top](#index-for-images) 
 ![European Countries](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Europe.png) 
 [European Countries File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Europe.png) 
+
+## Netherlands
+[Back to top](#index-for-images) 
+![Netherlands Provinces](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Holland.png) 
+[Netherlands Provinces File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Holland.png)
+![Netherlands Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Holland_PC.png) 
+[Netherlands Provinces (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Holland_PC.png) 
+![Netherlands Age Groups](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Holland_By_Age.png) 
+[Netherlands Age Groups File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Holland_By_Age.png) 
 
 ## Italian Provinces
 [Back to top](#index-for-images) 
@@ -90,8 +99,5 @@ Repository to generate fireplots every day for ECV. Click [here](https://TrevorW
 [Swiss Provinces File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switzerland.png) 
 ![Swiss Provinces (Per Capita)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switzerland_PC.png) 
 [Swiss Provinces (Per Capita) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Switzerland_PC.png) 
-
-## Zürich
-[Back to top](#index-for-images) 
 ![Zürich (by Age Groups)](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Zürich.png) 
 [Zürich (by Age Groups) File](https://trevorwinstral.github.io/Fireplots/Figures/Fire_Zürich.png) 
