@@ -1,5 +1,5 @@
 # Fireplots
-Repository to generate fireplots every day for ECV ([here](https://www.endcoronavirus.org/fireplots)). Go [here](/Fireplots/Figures) to browse the images.
+Repository to generate fireplots every day for ECV ([here](https://www.endcoronavirus.org/fireplots)). Go [here](/Fireplots/Uncompressed) to browse the images.
 
 ## Links to Images
 ![Fireplotting](https://github.com/TrevorWinstral/Fireplots/workflows/Fireplotting/badge.svg) \
