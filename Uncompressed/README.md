@@ -1,5 +1,5 @@
 # Index for Images
-![Fireplotting](https://github.com/TrevorWinstral/Fireplots/workflows/Fireplotting/badge.svg) \
+![Fireplotting](https://github.com/TrevorWinstral/Fireplots/workflows/Fireplotting%20With%20Compression/badge.svg/badge.svg) \
 Repository to generate fireplots every day for ECV. Click [here](https://TrevorWinstral.github.io/Fireplots) to get list of links to raw files. Click the link to jump to the image. \
 [Australian Provinces](#australia) \
 [Brazilian States](#brazil) \
