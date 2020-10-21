@@ -11,7 +11,7 @@ import matplotlib.transforms as transforms
 import requests, json
 
 import tiny
-import os
+import os, sys
 
 def cell_format(num):
     if -1000 < num < 1000:
@@ -133,17 +133,19 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
     # output
     plt.tight_layout()
     if save:
-        fname = ('Figures/Fire_%s_PC.png'%(country)).replace(' ','_') if per_capita  else ('Figures/Fire_%s.png'%(country)).replace(' ','_')
+        if GLOBAL_COMPRESSION:
+            fname = ('Figures/Fire_%s_PC.png'%(country)).replace(' ','_') if per_capita  else ('Figures/Fire_%s.png'%(country)).replace(' ','_')
+        else:
+            fname = ('Uncompressed/Fire_%s_PC.png'%(country)).replace(' ','_') if per_capita  else ('Uncompressed/Fire_%s.png'%(country)).replace(' ','_')
         plt.savefig(fname, dpi=40)
         print(f'Saving to {fname}')
 
-        if compress:
-            #tiny.compress_image(uncompressed_image=fname, compressed_image=fname)
-            pass
+        if compress and GLOBAL_COMPRESSION:
+            tiny.compress_image(uncompressed_image=fname, compressed_image=fname)
     if not show:
         plt.close()
 
-    print(f'Finished with {country}. Date: {date}')
+    print(f'Finished with {country}. Date: {date}. Compression: {GLOBAL_COMPRESSION and compress}. Global Compression: {GLOBAL_COMPRESSION}')
 
 
 def negative_to_zero(x):
@@ -163,7 +165,7 @@ def Brazil():
     df_c=df.groupby(['WOY']).sum()
     #print(df_c)
     #fireplot(df_c, country='Brazil', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', adjustment_factor_y=3)
-    fireplot(df_c, country='Brazil', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', adjustment_factor_y=1.1, legend=True)
+    fireplot(df_c, country='Brazil', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='States', adjustment_factor_y=1.1, legend=True, compress=True)
 
 
 def Czechia_Age():
@@ -186,13 +188,20 @@ def Czechia_Age():
     df['WOY'] = df['WOY'].astype(str).map(strptm)
     df = df.pivot(index='WOY', columns='Group', values='Count').fillna(0).astype(int)
     #print(df)
-    fireplot(df, country='Czechia_By_Age', Title='Czechia (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, age_groups=True)
+    fireplot(df, country='Czechia_By_Age', Title='Czechia (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Age Groups', legend=True, age_groups=True)
 
 def G20(partitions=0):
     print('Working on G20 (per Capita)')
-    df = pd.read_csv('https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv')
+    #df = pd.read_csv('https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv')
+    df = pd.read_csv('https://raw.githubusercontent.com/TrevorWinstral/COVID_Simplified/master/data/countries-aggregated.csv')
     countries = ['Bulgaria', 'Romania', 'Cyprus', 'Greece', 'Denmark', 'Netherlands', 'Sweden', 'Estonia', 'Hungary', 'Iceland', 'Czechia', 'Indonesia', 'Liechtenstein', 'France', 'Lithuania', 'Mexico', 'Brazil', 'Latvia', 'China', 'Switzerland', 'Ireland', 'Austria', 'Portugal', 'Norway', 'Spain', 'Australia', 'United Kingdom', 'Slovakia', 'Italy', 'Finland', 'Argentina', 'Canada', 'South Africa', 'Saudi Arabia', 'Luxembourg', 'Russia', 'Japan', 'Slovenia', 'India', 'US', 'Belgium', 'Korea, South', 'Turkey', 'Germany', 'Poland', 'Malta']
-    df = df.pivot_table(index='Date', columns='Country', values='Confirmed')[countries].diff().fillna(0).astype(int)
+    #df = df.pivot_table(index='Date', columns='Country', values='Confirmed')[countries].diff().fillna(0).astype(int)
+    #Next bit only for my repo 
+    df = df.pivot_table(index='Date', columns='Country', values='Confirmed')[countries]
+    df.index = pd.to_datetime(df.index, format='%Y-%d-%m')
+    df.sort_index(inplace=True)
+    df = df.diff().fillna(0).astype(int)
+    # should be it
 
     pop = pd.read_csv('https://raw.githubusercontent.com/datasets/population/master/data/population.csv').pivot(index='Year', columns='Country Name', values='Value').rename(columns={'United States':'US', 'Czech Republic':'Czechia', 'Korea, Rep.':'Korea, South', 'Russian Federation':'Russia', 'Slovak Republic':'Slovakia'})
     pop = pop[countries].fillna(method='ffill').T[[2018]].reset_index()
@@ -202,7 +211,7 @@ def G20(partitions=0):
     for d in pop_dict_list:
         state = d['Country Name']
         pop_dict[state]=d[2018]
-  
+
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
@@ -217,9 +226,9 @@ def G20(partitions=0):
         for s in range(partitions):
             start = partition_size*s
             end = partition_size*(s+1) + 1
-            fireplot(df.iloc[:, start:end], country=f'Key Countries {s+1}', Title=f'G20 + Schengen Countries Partition {s+1} (Cases per 10k Persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel=f'Countries (Partition {s+1})', legend=True, per_capita=True)
+            fireplot(df.iloc[:, start:end], country=f'Key Countries {s+1}', Title=f'G20 + Schengen Countries Partition {s+1} (Cases per 10k Persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel=f'Countries (Partition {s+1})', legend=True, per_capita=True)
     else:
-        fireplot(df, country='Key Countries', Title='G20 + Schengen Countries (Cases per 10k Persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Countries', legend=True, per_capita=True)
+        fireplot(df, country='Key Countries', Title='G20 + Schengen Countries (Cases per 10k Persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Countries', legend=True, per_capita=True)
 
 
 def Germany():
@@ -239,7 +248,7 @@ def Germany():
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df.index = df.index.map(strptm)
     df = df.fillna(0).astype(int)
-    fireplot(df, country='Germany_By_Age', Title='Germany (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, w_rat=1.8, age_groups=True)
+    fireplot(df, country='Germany_By_Age', Title='Germany (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Age Groups', legend=True, w_rat=1.8, age_groups=True)
 
     # By Province
     print('Working on Germany (By Province)')
@@ -254,7 +263,7 @@ def Germany():
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df.index = df.index.map(strptm)
     df = df.fillna(0).astype(int)
-    fireplot(df, country='Germany', Title='Germany (Cases)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True,)
+    fireplot(df, country='Germany', Title='Germany (Cases)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Provinces', legend=True,)
 
     # Province Per Capita
     print('Working on Germany (Per Capita)')
@@ -283,7 +292,7 @@ def Germany():
     df[df.columns] = df[df.columns].apply(add_pop)
     df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
     df = df[df.tail(7).sum().sort_values(ascending=False).index]
-    fireplot(df, country='Germany', Title='Germany (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True)
+    fireplot(df, country='Germany', Title='Germany (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Provinces', legend=True, per_capita=True)
 
 
 def Holland():
@@ -303,9 +312,9 @@ def Holland():
        '80-89', '90+', 'Unknown']]
 
     print('Working on Holland (Cases)')
-    fireplot(df, country='Holland', Title='Netherlands (Cases)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True)
+    fireplot(df, country='Holland', Title='Netherlands (Cases)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Provinces', legend=True)
     print('Working on Holland (Age Groups)')
-    fireplot(age, country='Holland_By_Age', Title='Netherlands (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, age_groups=True)
+    fireplot(age, country='Holland_By_Age', Title='Netherlands (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Age Groups', legend=True, age_groups=True)
 
     pop = pd.DataFrame(pd.read_html('https://en.wikipedia.org/wiki/Provinces_of_the_Netherlands')[2])[['Dutch name', 'Population[A][1]']]
     pop.columns = pop.columns.get_level_values(0)
@@ -321,7 +330,7 @@ def Holland():
     df = df[df.tail(7).sum().sort_values(ascending=False).index]
     
     print('Working on Holland (Per Capita)')
-    fireplot(df, country='Holland', Title='Netherland (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True)
+    fireplot(df, country='Holland', Title='Netherland (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Provinces', legend=True, per_capita=True)
 
 
 
@@ -346,10 +355,10 @@ def USA(partitions=None):
         for s in range(partitions):
             start = partition_size*s
             end = partition_size*(s+1) + 1
-            fireplot(df.iloc[:,start:end], country=f'USA Partition {s+1}', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel=f'States (Partition {s+1})', legend=True)
+            fireplot(df.iloc[:,start:end], country=f'USA Partition {s+1}', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel=f'States (Partition {s+1})', legend=True)
     else:
         #fireplot(df.iloc[:,:20], country='USA', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', adjustment_factor_y=16, caption_location_y=0.01)
-        fireplot(df, country='USA', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', legend=True)
+        fireplot(df, country='USA', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='States', legend=True)
 
 
 def USA_by_region():
@@ -396,7 +405,7 @@ def USA_by_region():
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
     df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
-    fireplot(df, country='USA Regions', Title='Fireplot US Regions (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Regions', legend=True, per_capita=True)
+    fireplot(df, country='USA Regions', Title='Fireplot US Regions (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Regions', legend=True, per_capita=True)
 
 
 def USA_per_capita(partitions=None):
@@ -436,10 +445,10 @@ def USA_per_capita(partitions=None):
         for s in range(partitions):
             start = partition_size*s
             end = partition_size*(s+1) + 1
-            fireplot(df.iloc[:,start:end], country=f'USA Partition {s+1}', Title=f'Fireplot USA (Cases per 10k persons) Partition {s+1}', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel=f'States (Partition {s+1})', legend=True, per_capita=True, start_time='2020-03-16')
+            fireplot(df.iloc[:,start:end], country=f'USA Partition {s+1}', Title=f'Fireplot USA (Cases per 10k persons) Partition {s+1}', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel=f'States (Partition {s+1})', legend=True, per_capita=True, start_time='2020-03-16')
     else:
         #fireplot(df.iloc[:,:20], country='USA', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', adjustment_factor_y=16, caption_location_y=0.01)
-        fireplot(df, country='USA', Title='Fireplot USA (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', legend=True, per_capita=True, start_time='2020-03-16')
+        fireplot(df, country='USA', Title='Fireplot USA (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='States', legend=True, per_capita=True, start_time='2020-03-16')
 
 
 def Florida_Age():
@@ -457,57 +466,8 @@ def Florida_Age():
     df=df.groupby(['WOY']).sum()[['0-4', '5-14', '15-24', '25-34', '35-44', '45-54', '55-64', '65-74','75-84', '85+', 'Unknown']]
     #print(df)
 
-    fireplot(df, country='Florida', Title='Florida (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, age_groups=True)
+    fireplot(df, country='Florida', Title='Florida (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Age Groups', legend=True, age_groups=True)
 
-
-
-def Russia():
-    #This is wierd, after the 10th of september the dataset goes from YYYY-MM-DD to YYYY-DD-MM, thanks russia
-    print('Creating Fireplot for Russia')
-    df = pd.read_csv('https://raw.githubusercontent.com/PhtRaveller/covid19-ru/master/data/covid_stats.csv')
-    df = df.query('category=="total"').drop(['category',
-                                            'Наблюдение (всего)',
-                                            'Россия - сумма по регионам',
-                                            'Россия',
-                                            'Наблюдение'], axis=1)
-    df.date = pd.to_datetime(df.date).dt.strftime('%Y-%m-%d')
-    df.set_index('date', inplace=True)
-    df = df.diff().fillna(0).astype(int)
-    df = df[df.sum().sort_values(ascending=False).index]
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
-    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
-    df['WOY'] = df['WOY'].map(strptm).astype(str)
-    df=df.groupby(['WOY']).sum()
-    #fireplot(df, country='Russia')
-
-def Spain():
-    #Spain has stopped reporting since the 20th of July
-    print('Creating Fireplot for Spain')
-    df = pd.read_csv('https://raw.githubusercontent.com/Secuoyas-Experience/covid-19-es/master/datos-comunidades-csv/covid-19-ES-CCAA-DatosCasos.csv')
-    df = df.pivot_table(index='fecha', columns='nombreCcaa', values='casosConfirmados').diff().fillna(0).astype(int)
-    df = df[df.sum().sort_values(ascending=False).index]
-    
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
-    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
-    df['WOY'] = df['WOY'].map(strptm).astype(str)
-    df=df.groupby(['WOY']).sum()
-    #print(df)
-    #fireplot(df, country='Spain')
-
-def UK():
-    #Currently depreciated
-    print('Creating fireplot for UK')
-    df = pd.read_csv('https://raw.githubusercontent.com/tomwhite/covid-19-uk-data/master/data/covid-19-cases-uk.csv')
-    df['Area_full'] = df['Country'] + '-' + df['Area']
-    df = df.pivot_table(index='Date', columns='Area_full', values='TotalCases').diff().fillna(0).astype(int)
-    df = df[df.sum().sort_values(ascending=False).index]
-
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
-    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
-    df['WOY'] = df['WOY'].map(strptm).astype(str)
-    df=df.groupby(['WOY']).sum()
-    #print(df)
-    #fireplot(df, country='UK')
 
 
 def Italy():
@@ -525,7 +485,7 @@ def Italy():
     df=df.groupby(['WOY']).sum()
     #print(df)
     #fireplot(df, country='Italy', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', adjustment_factor_y=27, caption_location_y=0.01)
-    fireplot(df, country='Italy', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True)
+    fireplot(df, country='Italy', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Provinces', legend=True)
 
 
 def Italy_PC():
@@ -567,21 +527,8 @@ def Italy_PC():
     #df = df[df.tail(7).sum().sort_values(ascending=False).index]
     df = df[df.sum().sort_values(ascending=False).index]
     
-    fireplot(df, country='Italy', Title='Fireplot Italy (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True)
+    fireplot(df, country='Italy', Title='Fireplot Italy (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Provinces', legend=True, per_capita=True)
 
-
-def India():
-    print('Creating Fireplot for India')
-    df = pd.read_csv('https://raw.githubusercontent.com/pratik-bose/CoronaTracker/V1/CoronaData.csv')
-    df = df.pivot_table(index='Date',columns='Name_1',values='TotalCases').diff().fillna(0).astype(int)
-    df = df[df.sum().sort_values(ascending=False).index]
-
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
-    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
-    df['WOY'] = df['WOY'].map(strptm).astype(str)
-    df=df.groupby(['WOY']).sum()
-    #print(df)
-    #fireplot(df, country='India')
 
 def Europe():
     print('Creating Fireplot for Europe')
@@ -595,11 +542,7 @@ def Europe():
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
     #fireplot(df, country='Europe', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Countries', adjustment_factor_y=30, caption_location_y=0.01)
-    fireplot(df, country='Europe', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Countries', legend=True)
-
-
-def Europe_PC():
-    return
+    fireplot(df, country='Europe', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Countries', legend=True)
 
 
 def World(partitions=0):
@@ -618,9 +561,9 @@ def World(partitions=0):
         for s in range(partitions):
             start = partition_size*s
             end = partition_size*(s+1) + 1
-            fireplot(df.iloc[:, start:end], country=f'World Partition {s+1}', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel=f'Countries (Partition {s+1})')
+            fireplot(df.iloc[:, start:end], country=f'World Partition {s+1}', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel=f'Countries (Partition {s+1})')
     else:
-        fireplot(df, country='World', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Countries', legend=True)
+        fireplot(df, country='World', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Countries', legend=True)
 
 def Switzerland():
     print('Creating Fireplot for Switzerland')
@@ -636,7 +579,7 @@ def Switzerland():
     df = df[df.tail(7).sum().sort_values(ascending=False).index]
     #print(df)
     
-    fireplot(df, country='Switzerland', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Cantons', legend=True)
+    fireplot(df, country='Switzerland', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Cantons', legend=True)
 
 def Switzerland_PC():
     print('Creating Fireplot for Switzerland (Per Capita)')
@@ -665,7 +608,7 @@ def Switzerland_PC():
     
     df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
     #print(df)
-    fireplot(df, country='Switzerland', Title='Fireplot Switzerland (Cases per 10k persons)',  grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Cantons', legend=True, per_capita=True)
+    fireplot(df, country='Switzerland', Title='Fireplot Switzerland (Cases per 10k persons)',  grouped_by_week=True, caption=r'(*) Data from last week is incomplete  \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Cantons', legend=True, per_capita=True)
 
 
 def Zurich():
@@ -680,7 +623,7 @@ def Zurich():
     df=df.pivot(index='WOY', columns='AgeYearCat', values='NewConfCases').drop(['unbekannt','100+'], axis=1).fillna(0).astype(int)
     #print(df)
 
-    fireplot(df, country='Zürich', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, age_groups=True)
+    fireplot(df, country='Zürich', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Age Groups', legend=True, age_groups=True)
 
 
 def Sweden():    
@@ -695,7 +638,7 @@ def Sweden():
     df=df.rename(columns=lambda s: s.replace('_', ' '))
     df = df[df.sum().sort_values(ascending=False).index]
     
-    fireplot(df, country='Sweden', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True)
+    fireplot(df, country='Sweden', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Provinces', legend=True)
 
 
 def Sweden_PC():
@@ -734,7 +677,7 @@ def Sweden_PC():
     df = df[df.sum().sort_values(ascending=False).index]
 
     #print(df)
-    fireplot(df, country='Sweden', Title='Fireplot Sweden (Cases per 10k persons)',  grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True)
+    fireplot(df, country='Sweden', Title='Fireplot Sweden (Cases per 10k persons)',  grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Provinces', legend=True, per_capita=True)
 
     return   
 
@@ -778,7 +721,7 @@ def Sweden_Age():
     df.drop('WOY', axis=1, inplace=True)
     #print(df)
 
-    fireplot(df, country='Sweden_By_Age', Title='Fireplot Sweden (Age Groups)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Age Groups', legend=True, age_groups=True)
+    fireplot(df, country='Sweden_By_Age', Title='Fireplot Sweden (Age Groups)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Age Groups', legend=True, age_groups=True)
 
 
 
@@ -797,7 +740,7 @@ def Australia():
     df = df[df.sum().sort_values(ascending=False).index]
 
     #print(df) 
-    fireplot(df, country='Australia', Title='Fireplot Australia (Cases)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True)
+    fireplot(df, country='Australia', Title='Fireplot Australia (Cases)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Provinces', legend=True)
 
 def Australia_PC():
     print('Creating Fireplot for Australia (Per Capita)')
@@ -828,7 +771,7 @@ def Australia_PC():
     df = df[df.sum().sort_values(ascending=False).index]
     df[df.columns] = df[df.columns].applymap('{:.1f}'.format).applymap(float)
 
-    fireplot(df, country='Australia', Title='Fireplot Australia (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True, per_capita=True, w_rat=2.0)
+    fireplot(df, country='Australia', Title='Fireplot Australia (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Provinces', legend=True, per_capita=True, w_rat=2.0)
 
 
 
@@ -839,14 +782,20 @@ def compression():
         tiny.compress_image(uncompressed_image=f'Figures/{img}', compressed_image=f"Figures/{img.replace('.png', '_compressed.png')}")
 
 
+GLOBAL_COMPRESSION = False
 if __name__ == "__main__":
     PARALLEL = True
+
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'compress':
+            GLOBAL_COMPRESSION = True
+
 
     if PARALLEL:
         print('Using Parallel')
         arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
         functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, G20, Holland, Florida_Age, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich, Sweden_Age]
-        Group_Size = 6
+        Group_Size = 5
         Partitions = int(len(functions)/Group_Size)+1
         for partition in range(Partitions):
             for f in functions[partition*Group_Size: (partition+1)*Group_Size]:
@@ -865,7 +814,7 @@ if __name__ == "__main__":
         #Czechia_Age()
         #Germany()
         #G20(partitions=0)
-        Holland()
+        #Holland()
         #Russia() # Data wierd
         #USA(partitions=0)
         #USA_by_region()
@@ -881,7 +830,7 @@ if __name__ == "__main__":
         #World()
         #Switzerland()
         #Switzerland_PC()
-        #Zurich()
+        Zurich()
         #Sweden()
         #Sweden_PC()
         #Sweden_Age()
