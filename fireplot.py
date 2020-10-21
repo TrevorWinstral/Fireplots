@@ -138,7 +138,8 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
         print(f'Saving to {fname}')
 
         if compress:
-            tiny.compress_image(uncompressed_image=fname, compressed_image=fname)
+            #tiny.compress_image(uncompressed_image=fname, compressed_image=fname)
+            pass
     if not show:
         plt.close()
 
