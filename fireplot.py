@@ -229,7 +229,7 @@ def Germany():
     df = ger[['Altersgruppe', 'Refdatum', 'AnzahlFall']]
     df.index = df['Refdatum'].map(lambda s: s[:-9])
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y/%m/%d').weekofyear.astype(int)
+    df['WOY'] = pd.to_datetime(df.index.copy(), format='%Y/%m/%d').weekofyear.astype(int)
     df = df.groupby(by=['WOY', 'Altersgruppe']).sum().reset_index()
     df['Altersgruppe'] = df['Altersgruppe'].map(lambda s: s.replace('A', ''))
     df = df.pivot(index='WOY', columns='Altersgruppe', values='AnzahlFall').sort_index()
@@ -245,7 +245,7 @@ def Germany():
     df = ger[['Bundesland', 'Refdatum', 'AnzahlFall']]
     df.index = df['Refdatum'].map(lambda s: s[:-9])
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y/%m/%d').weekofyear.astype(int)
+    df['WOY'] = pd.to_datetime(df.index.copy(), format='%Y/%m/%d').weekofyear.astype(int)
     df = df.groupby(by=['WOY', 'Bundesland']).sum().reset_index()
     df = df.pivot(index='WOY', columns='Bundesland', values='AnzahlFall').sort_index()
     df = df[df.tail(7).sum().sort_values(ascending=False).index]
@@ -271,7 +271,7 @@ def Germany():
     df['AnzahlFall'] = df['AnzahlFall'].map(negative_to_zero)
     df.index = df['Refdatum'].map(lambda s: s[:-9])
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y/%m/%d').weekofyear.astype(int)
+    df['WOY'] = pd.to_datetime(df.index.copy(), format='%Y/%m/%d').weekofyear.astype(int)
     df = df.groupby(by=['WOY', 'Bundesland']).sum().reset_index()
     df = df.pivot(index='WOY', columns='Bundesland', values='AnzahlFall').sort_index()
     df.index = df.index.astype(str)
@@ -298,6 +298,8 @@ def Holland():
     df = df.reset_index().pivot(index='WOY', columns='Province', values='Count').fillna(0).astype(int)
     df = df[df.tail(7).sum().sort_values(ascending=False).index]
     age = age.reset_index().pivot(index='WOY', columns='Agegroup', values='Count').fillna(0).astype(int)
+    age = age[['0-9', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79',
+       '80-89', '90+', 'Unknown']]
 
     print('Working on Holland (Cases)')
     fireplot(df, country='Holland', Title='Netherlands (Cases)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='Provinces', legend=True)
@@ -862,7 +864,7 @@ if __name__ == "__main__":
         #Czechia_Age()
         #Germany()
         #G20(partitions=0)
-        #Holland()
+        Holland()
         #Russia() # Data wierd
         #USA(partitions=0)
         #USA_by_region()
