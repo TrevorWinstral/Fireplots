@@ -684,29 +684,9 @@ def Sweden_PC():
 def Sweden_Age():
     print('Creating Fireplot for Sweden (Age Groups)')
 
-    # Get File List
-    r = requests.get('https://api.github.com/repos/adamaltmejd/covid/git/trees/14a910ab0047035d1ad324b7e7a112e1973401f4')
-    j = json.loads(r.content.decode())
-    file_names = [i['path'] for i in j['tree']][1:85:7] + [i['path'] for i in j['tree']][85::5] # This should give us the totals so far, now we need to get the data from each xlsx file on that day
-    # We go by 7 then by 5 because they stop reporting on weekends
-
-    # Get the files and throw em together into one dataframe
-    df =pd.read_excel('https://raw.githubusercontent.com/adamaltmejd/covid/master/data/FHM/'+file_names[0], sheet_name='Totalt antal per åldersgrupp').rename(columns={'Totalt_antal_fall':file_names[0][-15:-5]})
-    df.index = df['Åldersgrupp']
-    df = df[[file_names[0][-15:-5]]]
-    the_big_dict= df.to_dict()
-    for fname in file_names[1:]:
-        # Using dicts here should make this slightly faster
-        date=fname[-15:-5]
-        df_temp = pd.read_excel('https://raw.githubusercontent.com/adamaltmejd/covid/master/data/FHM/'+fname, sheet_name='Totalt antal per åldersgrupp').rename(columns={'Totalt_antal_fall':date})
-        df_temp.index = df_temp['Åldersgrupp']
-        the_big_dict[date] = df_temp.to_dict()[date]
-        #df = df.join(df_temp[[fname[-15:-5]]])
-
-    df=pd.DataFrame(data=the_big_dict).fillna(0)
-    # Some formatting
-    df.loc['80+'] = df.loc[['Ålder_80_90', 'Ålder_90_plus', 'Ålder_80_89']].sum()
-    df = df.T.drop(['Ålder_80_90', 'Ålder_90_plus', 'Ålder_80_89'], axis=1).diff().fillna(0).astype(int)
+    df = pd.read_csv('https://raw.githubusercontent.com/necsi/Sweden_Age_Data/master/Age_Stratified.csv')
+    df.index = df['Date']
+    df = df.drop(['Ålder_80_90', 'Ålder_90_plus', 'Ålder_80_89', 'Date'], axis=1).diff().fillna(0).astype(int)
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
     df = df[['Ålder_0_9',  'Ålder_10_19',  'Ålder_20_29',  'Ålder_30_39',  'Ålder_40_49',  'Ålder_50_59',  'Ålder_60_69',  'Ålder_70_79', '80+',  'Uppgift saknas']]
     renamer = lambda s: s.replace('Ålder_','').replace('_','-').replace('Uppgift saknas','Unkown')
@@ -716,9 +696,7 @@ def Sweden_Age():
     df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str)
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
-    #print(df)
-    df.index=df['WOY']
-    df.drop('WOY', axis=1, inplace=True)
+    df =df.groupby(by='WOY').sum()
     #print(df)
 
     fireplot(df, country='Sweden_By_Age', Title='Fireplot Sweden (Age Groups)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Age Groups', legend=True, age_groups=True)
@@ -830,10 +808,10 @@ if __name__ == "__main__":
         #World()
         #Switzerland()
         #Switzerland_PC()
-        Zurich()
+        #Zurich()
         #Sweden()
         #Sweden_PC()
-        #Sweden_Age()
+        Sweden_Age()
         #Australia()
         #Australia_PC()
 
