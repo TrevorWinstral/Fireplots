@@ -773,7 +773,7 @@ if __name__ == "__main__":
         print('Using Parallel')
         arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
         functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, G20, Holland, Florida_Age, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich, Sweden_Age]
-        Group_Size = 5
+        Group_Size = 4
         Partitions = int(len(functions)/Group_Size)+1
         for partition in range(Partitions):
             for f in functions[partition*Group_Size: (partition+1)*Group_Size]:
@@ -791,7 +791,7 @@ if __name__ == "__main__":
         #Brazil()
         #Czechia_Age()
         #Germany()
-        #G20(partitions=0)
+        G20(partitions=0)
         #Holland()
         #Russia() # Data wierd
         #USA(partitions=0)
@@ -811,7 +811,7 @@ if __name__ == "__main__":
         #Zurich()
         #Sweden()
         #Sweden_PC()
-        Sweden_Age()
+        #Sweden_Age()
         #Australia()
         #Australia_PC()
 
