@@ -11,7 +11,7 @@ import matplotlib.transforms as transforms
 import requests, json
 
 import tiny
-import os, sys
+import os, sys, copy
 
 def cell_format(num):
     if -1000 < num < 1000:
@@ -40,7 +40,8 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
         date = df.index[-1].strftime('%Y-%m-%d')
     else:
         date = df.index[-1]
-    if show_sum and not per_capita:
+
+    if show_sum and not per_capita and not age_groups:
         col_name = 'All Ages' if age_groups else 'All Regions'
         df.insert(loc=0, column=col_name, value=df.sum(axis=1))
 
@@ -68,6 +69,11 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
         norm = colors.BoundaryNorm(bounds, cmap.N, clip=True)
     else:
         norm = colors.BoundaryNorm(bounds, cmap.N)
+
+    if age_groups:
+        cmap = copy.copy(matplotlib.cm.get_cmap('inferno'))
+        cmap.set_bad((0,0,0))
+        norm = colors.LogNorm(vmax=df.max().max()*1.3)
     im = ax.imshow(df.fillna(0).values, cmap=cmap, norm=norm)
     #
     # tick labels
@@ -87,7 +93,7 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
         for j in range(len(df.columns)):
             cell = df.fillna(0).values[i, j]
             if cell:
-                cell_c = 'w' if (cell >= 1000 or cell < 0) else 'k'
+                cell_c = 'w' if ((cell >= 1000 or cell < 0) and not age_groups) else 'k'
                 cell_s = fontsize if (cell < 1000) else int(fontsize * 0.8)
                 text = ax.text(j, i, cell_format(cell),
                                ha='center', va='center', color=cell_c, fontsize=cell_s)
@@ -762,7 +768,7 @@ def compression():
 
 GLOBAL_COMPRESSION = False
 if __name__ == "__main__":
-    PARALLEL = True
+    PARALLEL = False
 
     if len(sys.argv) > 1:
         if sys.argv[1] == 'compress':
@@ -789,16 +795,16 @@ if __name__ == "__main__":
     else:
         print('Not using Parallel')
         #Brazil()
-        #Czechia_Age()
-        #Germany()
-        G20(partitions=0)
-        #Holland()
+        Czechia_Age()
+        Germany()
+        #G20(partitions=0)
+        Holland()
         #Russia() # Data wierd
         #USA(partitions=0)
         #USA_by_region()
         #USA_per_capita(partitions=0)
         #USA_per_capita(partitions=3)
-        #Florida_Age()
+        Florida_Age()
         #Spain() # Data Incomplete
         #UK() # Data Incomplete
         #Italy()
@@ -808,10 +814,10 @@ if __name__ == "__main__":
         #World()
         #Switzerland()
         #Switzerland_PC()
-        #Zurich()
+        Zurich()
         #Sweden()
         #Sweden_PC()
-        #Sweden_Age()
+        Sweden_Age()
         #Australia()
         #Australia_PC()
 
