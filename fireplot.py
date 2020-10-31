@@ -165,7 +165,7 @@ def Brazil():
     df = df[df.sum().sort_values(ascending=False).index]
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df_c=df.groupby(['WOY']).sum()
@@ -187,7 +187,7 @@ def Czechia_Age():
     df['Group'] = df['vek'].map(age_dict)
     df['Count'] = 1
     week = lambda x : x.weekofyear
-    df['WOY'] = pd.to_datetime(df['datum'], format='%Y/%m/%d').map(week).astype(int)
+    df['WOY'] = pd.to_datetime(df['datum'], format='%Y/%m/%d').map(week).astype(int) -1
     df = df.groupby(by=['WOY', 'Group']).sum()[['Count']].reset_index()
     
     strptm = lambda s: datetime.strptime('2020-'+s+'-0', "%Y-%W-%w")
@@ -218,7 +218,7 @@ def G20(partitions=0):
         state = d['Country Name']
         pop_dict[state]=d[2018]
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df = df.groupby(by='WOY').sum()
@@ -245,7 +245,7 @@ def Germany():
     df = ger[['Altersgruppe', 'Refdatum', 'AnzahlFall']]
     df.index = df['Refdatum'].map(lambda s: s[:-9])
 
-    df['WOY'] = pd.to_datetime(df.index.copy(), format='%Y/%m/%d').weekofyear.astype(int)
+    df['WOY'] = pd.to_datetime(df.index.copy(), format='%Y/%m/%d').weekofyear.astype(int)-1
     df = df.groupby(by=['WOY', 'Altersgruppe']).sum().reset_index()
     df['Altersgruppe'] = df['Altersgruppe'].map(lambda s: s.replace('A', ''))
     df = df.pivot(index='WOY', columns='Altersgruppe', values='AnzahlFall').sort_index()
@@ -261,7 +261,7 @@ def Germany():
     df = ger[['Bundesland', 'Refdatum', 'AnzahlFall']]
     df.index = df['Refdatum'].map(lambda s: s[:-9])
 
-    df['WOY'] = pd.to_datetime(df.index.copy(), format='%Y/%m/%d').weekofyear.astype(int)
+    df['WOY'] = pd.to_datetime(df.index.copy(), format='%Y/%m/%d').weekofyear.astype(int)-1
     df = df.groupby(by=['WOY', 'Bundesland']).sum().reset_index()
     df = df.pivot(index='WOY', columns='Bundesland', values='AnzahlFall').sort_index()
     df = df[df.tail(7).sum().sort_values(ascending=False).index]
@@ -287,7 +287,7 @@ def Germany():
     df['AnzahlFall'] = df['AnzahlFall'].map(negative_to_zero)
     df.index = df['Refdatum'].map(lambda s: s[:-9])
 
-    df['WOY'] = pd.to_datetime(df.index.copy(), format='%Y/%m/%d').weekofyear.astype(int)
+    df['WOY'] = pd.to_datetime(df.index.copy(), format='%Y/%m/%d').weekofyear.astype(int)-1
     df = df.groupby(by=['WOY', 'Bundesland']).sum().reset_index()
     df = df.pivot(index='WOY', columns='Bundesland', values='AnzahlFall').sort_index()
     df.index = df.index.astype(str)
@@ -305,7 +305,8 @@ def Holland():
     print('Working on Holland')
     df = pd.read_csv('https://data.rivm.nl/covid-19/COVID-19_casus_landelijk.csv', delimiter=';').drop('Week_of_death', axis=1)
     df['Count'] = 1
-    df['WOY'] = pd.to_datetime(df['Date_statistics'].copy(), format='%Y-%m-%d').map(lambda s: s.weekofyear).astype(str) # week of year column
+    df['WOY'] = pd.to_datetime(df['Date_statistics'].copy(), format='%Y-%m-%d').map(lambda s: s.weekofyear) -1
+    df['WOY'] = df['WOY'].astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     age = df.groupby(by=['WOY', 'Agegroup']).sum()
@@ -350,7 +351,7 @@ def USA(partitions=None):
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
     #print(df)
     
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -406,7 +407,7 @@ def USA_by_region():
     df = df[df.iloc[-1].sort_values(ascending=False).index].diff().fillna(0)
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
     
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -436,7 +437,7 @@ def USA_per_capita(partitions=None):
     df = df[df.iloc[-1].sort_values(ascending=False).index].diff().fillna(0)
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
     
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -466,7 +467,7 @@ def Florida_Age():
     df=df.reset_index().pivot(index='Case_', columns='Age_group', values='Count').fillna(0).astype(int)
     df.index = df.index.map(lambda s: s.split(' ')[0]) # Get rid of timestamp in date
 
-    df['WOY'] = pd.to_datetime(df.index, format='%m/%d/%Y').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%m/%d/%Y').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()[['0-4', '5-14', '15-24', '25-34', '35-44', '45-54', '55-64', '65-74','75-84', '85+', 'Unknown']]
@@ -485,7 +486,7 @@ def Italy():
     df = df[df.sum().sort_values(ascending=False).index]
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -525,7 +526,7 @@ def Italy_PC():
     df = df[df.iloc[-1].sort_values(ascending=False).index].diff().fillna(0)
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
     
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -543,7 +544,7 @@ def Europe():
     df = df.pivot_table(index='Date', columns='Country', values='Confirmed')[EU_Countries].iloc[6:]
     df = df[df.sum().sort_values(ascending=False).index].diff().fillna(0.0).astype(int)
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -556,7 +557,7 @@ def World(partitions=0):
     df = df.pivot_table(index='Date', columns='Country', values='Confirmed')
     df = df[df.sum().sort_values(ascending=False).index]
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -578,7 +579,7 @@ def Switzerland():
     df[df.columns] = df[df.columns].fillna(method='ffill').fillna(0).diff().fillna(0).astype(int)
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -606,7 +607,7 @@ def Switzerland_PC():
     df = df[df.columns].apply(divide_by_pop, axis=0)
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -621,7 +622,7 @@ def Zurich():
     print('Creating Fireplot for Zürich (Age Groups)')
     df = pd.read_csv('https://raw.githubusercontent.com/openZH/covid_19/master/fallzahlen_kanton_alter_geschlecht_csv/COVID19_Fallzahlen_Kanton_ZH_altersklassen_geschlecht.csv')
     df=df[['Week', 'Year', 'AgeYearCat', 'NewConfCases']]
-    df['WOY'] = df['Year'].astype(str)+'-'+df['Week'].astype(str)+'-1'
+    df['WOY'] = df['Year'].astype(str)+'-'+(df['Week']).astype(str)+'-1'
     
     strptm = lambda s: datetime.strptime(s, '%Y-%W-%w')
     df['WOY'] = df['WOY'].map(strptm).astype(str)
@@ -637,7 +638,7 @@ def Sweden():
     df = pd.read_excel('https://fohm.maps.arcgis.com/sharing/rest/content/items/b5e7488e117749c19881cce45db13f7e/data').drop('Totalt_antal_fall', axis=1)
     df[df.columns[1:]] = df[df.columns[1:]].applymap(negative_to_zero)
     
-    df['WOY'] = pd.to_datetime(df['Statistikdatum'], format='%Y-%m-%d').map(lambda x: str(x.weekofyear)) # week of year column
+    df['WOY'] = pd.to_datetime(df['Statistikdatum'], format='%Y-%m-%d').map(lambda x: str(x.weekofyear -1)) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -674,7 +675,7 @@ def Sweden_PC():
     #print(df)
     df = df[df.iloc[-1].sort_values(ascending=False).index].fillna(0)
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -699,7 +700,7 @@ def Sweden_Age():
     df.rename(columns=renamer, inplace=True)
 
     # Week of Year
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str)
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str)
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df =df.groupby(by='WOY').sum()
@@ -717,7 +718,7 @@ def Australia():
     #print(df)
     #quit()
 
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -743,7 +744,7 @@ def Australia_PC():
     df=df.pivot_table(index='date', columns='state', values='confirmed')
     df[df.columns] = df[df.columns].applymap(negative_to_zero)
     
-    df['WOY'] = pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear.astype(str) # week of year column
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str) # week of year column
     strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
     df['WOY'] = df['WOY'].map(strptm).astype(str)
     df=df.groupby(['WOY']).sum()
@@ -795,16 +796,16 @@ if __name__ == "__main__":
     else:
         print('Not using Parallel')
         #Brazil()
-        Czechia_Age()
-        Germany()
+        #Czechia_Age()
+        #Germany()
         #G20(partitions=0)
-        Holland()
+        #Holland()
         #Russia() # Data wierd
         #USA(partitions=0)
         #USA_by_region()
         #USA_per_capita(partitions=0)
         #USA_per_capita(partitions=3)
-        Florida_Age()
+        #Florida_Age()
         #Spain() # Data Incomplete
         #UK() # Data Incomplete
         #Italy()
@@ -817,7 +818,7 @@ if __name__ == "__main__":
         Zurich()
         #Sweden()
         #Sweden_PC()
-        Sweden_Age()
+        #Sweden_Age()
         #Australia()
         #Australia_PC()
 
