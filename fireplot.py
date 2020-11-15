@@ -126,7 +126,7 @@ def fireplot(df, country, start_time=None, most_recent=0, save=True, show=False,
         ax.set_title(textext, wrap=True)
         fig.suptitle('%s Fireplot (Cases)'%country, fontsize=titlesize, y=1.0, x = 0.5, transform=transforms.blended_transform_factory(ax.transAxes, fig.transFigure))
     else:
-        ax.sup_title('%s Fireplot (Cases)'%country, fontsize=titlesize)
+        fig.suptitle('%s Fireplot (Cases)'%country, fontsize=titlesize, y=1.0, x = 0.5, transform=transforms.blended_transform_factory(ax.transAxes, fig.transFigure))
 
     ax.tick_params(labelsize=labelsize)
 
@@ -537,6 +537,32 @@ def Italy_PC():
     fireplot(df, country='Italy', Title='Fireplot Italy (Cases per 10k persons)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Provinces', legend=True, per_capita=True)
 
 
+def Israel(partitions=0):
+    print(f'Working on Israel, Partitions: {partitions}')
+    df = pd.read_csv('https://raw.githubusercontent.com/vbrunsch/rankings/master/israel_data.csv', encoding='utf-8')[['City_Name', 'Date', 'Cumulative_verified_cases']]
+    df = df.pivot(index='Date', columns='City_Name', values='Cumulative_verified_cases')
+    df[df.columns] = df[df.columns].applymap(lambda s: int(s.replace('<','') if type(s)==str else s)).diff().fillna(0).astype(int)
+
+    
+    df['WOY'] = (pd.to_datetime(df.index, format='%Y-%m-%d').weekofyear-1).astype(str)
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    df['WOY'] = df['WOY'].map(strptm).astype(str)
+    df=df.groupby(['WOY']).sum()
+
+    df = df[df.tail(10).sum().sort_values(ascending=False).index]
+
+    if partitions and partitions>0:
+        num_cols = len(df.columns)
+        partition_size = int(num_cols/partitions)
+        for s in range(partitions):
+            start = partition_size*s
+            end = partition_size*(s+1) + 1
+            fireplot(df.iloc[:,start:end], country=f'Israel Partition {s+1}', Title=f'Fireplot Israel Partition {s+1}', grouped_by_week=True, xlabel=f'Cities (Partition {s+1})', legend=True)
+    else:
+        #fireplot(df.iloc[:,:20], country='USA', grouped_by_week=True, caption=r'(*) Data from last week is incomplete', xlabel='States', adjustment_factor_y=16, caption_location_y=0.01)
+        fireplot(df, country='Israel', Title='Fireplot Israel', xlabel=f'Cities', grouped_by_week=True, legend=True)
+
+
 def Europe():
     print('Creating Fireplot for Europe')
     EU_Countries = ['Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 'Bulgaria', 'Croatia', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Latvia', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Malta', 'Moldova', 'Monaco', 'Montenegro', 'Netherlands', 'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'San Marino', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom']
@@ -618,6 +644,34 @@ def Switzerland_PC():
     fireplot(df, country='Switzerland', Title='Fireplot Switzerland (Cases per 10k persons)',  grouped_by_week=True, caption=r'(*) Data from last week is incomplete  \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Cantons', legend=True, per_capita=True)
 
 
+def Switzerland_Age():
+    print('Working on Swiss Age Groups')
+    df = pd.read_excel('Data/Dashboard.xlsx')
+
+    cases = df[df['fall_dt'].notna()].groupby(['fall_dt', 'akl']).sum()['fallklasse_3']
+    deaths = df[df['fall_dt'].isna()].groupby(['pttoddat', 'akl']).sum()['pttod_1']
+
+    cases = cases.reset_index()
+    deaths = deaths.reset_index()
+
+    cases['WOY'] = (pd.to_datetime(cases['fall_dt'].copy(), format='%Y-%m-%d').map(lambda s: s.weekofyear)-1).astype(str)
+    deaths['WOY'] = (pd.to_datetime(deaths['pttoddat'].copy(), format='%Y-%m-%d').map(lambda s: s.weekofyear)-1).astype(str)
+    strptm = lambda s: datetime.strptime('2020-'+s+'-1', "%Y-%W-%w")
+    cases['WOY'] = cases['WOY'].map(strptm).astype(str)
+    deaths['WOY'] = deaths['WOY'].map(strptm).astype(str)
+
+    cases = cases.groupby(['WOY', 'akl']).sum().reset_index()
+    deaths = deaths.groupby(['WOY', 'akl']).sum().reset_index()
+    cases = cases.pivot(index='WOY', columns='akl', values='fallklasse_3')
+    deaths = deaths.pivot(index='WOY', columns='akl', values='pttod_1')
+
+    print(cases)
+    print(deaths)
+    fireplot(cases, country='Switzerland Age Cases',  Title='Switzerland (Cases by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Age Groups', legend=True, age_groups=True)
+    fireplot(deaths, country='Switzerland Age Deaths', Title='Switzerland (Deaths by Age Group)', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Age Groups', legend=True, age_groups=True)
+
+
+
 def Zurich():
     print('Creating Fireplot for Zürich (Age Groups)')
     df = pd.read_csv('https://raw.githubusercontent.com/openZH/covid_19/master/fallzahlen_kanton_alter_geschlecht_csv/COVID19_Fallzahlen_Kanton_ZH_altersklassen_geschlecht.csv')
@@ -631,7 +685,7 @@ def Zurich():
     #print(df)
 
     fireplot(df, country='Zürich', grouped_by_week=True, caption=r'(*) Data from last week is incomplete \\ Plot Created by Trevor Winstral for EndCoronavirus.org', xlabel='Age Groups', legend=True, age_groups=True)
-
+    
 
 def Sweden():    
     print('Creating Fireplot for Sweden')
@@ -769,7 +823,7 @@ def compression():
 
 GLOBAL_COMPRESSION = False
 if __name__ == "__main__":
-    PARALLEL = True
+    PARALLEL = False
 
     if len(sys.argv) > 1:
         if sys.argv[1] == 'compress':
@@ -778,8 +832,8 @@ if __name__ == "__main__":
 
     if PARALLEL:
         print('Using Parallel')
-        arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}]}
-        functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, G20, Holland, Florida_Age, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich, Sweden_Age]
+        arguments = {USA: [{'partitions':3}, {'partitions':0}], USA_per_capita: [{'partitions':3}], Israel: [{'partitions':3}, {'partitions':0}]}
+        functions = [Australia, Australia_PC, Brazil, Czechia_Age, Germany, G20, Holland, Florida_Age, USA, USA_per_capita, Italy, Italy_PC, Europe, Sweden, Sweden_PC, Switzerland, Switzerland_PC, Zurich, Sweden_Age, Israel]
         Group_Size = 4
         Partitions = int(len(functions)/Group_Size)+1
         for partition in range(Partitions):
@@ -810,12 +864,14 @@ if __name__ == "__main__":
         #UK() # Data Incomplete
         #Italy()
         #Italy_PC()
+        Israel(partitions = 3)
         #India() # Data Incomplete
         #Europe()
         #World()
         #Switzerland()
         #Switzerland_PC()
-        Zurich()
+        #Switzerland_Age()
+        #Zurich()
         #Sweden()
         #Sweden_PC()
         #Sweden_Age()
