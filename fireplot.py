@@ -864,7 +864,7 @@ if __name__ == "__main__":
         #UK() # Data Incomplete
         #Italy()
         #Italy_PC()
-        Israel(partitions = 3)
+        #Israel(partitions = 3)
         #India() # Data Incomplete
         #Europe()
         #World()
@@ -874,7 +874,7 @@ if __name__ == "__main__":
         #Zurich()
         #Sweden()
         #Sweden_PC()
-        #Sweden_Age()
+        Sweden_Age()
         #Australia()
         #Australia_PC()
 
