@@ -3,6 +3,7 @@ name: Fireplotting With Compression
 on:
   schedule:
     - cron: '0 0 * * 1/7'
+  push:
     
   
 
@@ -24,6 +25,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Install Latex
       run: |
+        sudo apt-get update
         sudo apt install texlive-latex-extra dvipng ghostscript cm-super
         mktexlsr
     - name: Lint with flake8
