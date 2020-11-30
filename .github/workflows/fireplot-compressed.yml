@@ -3,7 +3,6 @@ name: Fireplotting With Compression
 on:
   schedule:
     - cron: '0 0 * * 1/7'
-  push:
     
   
 
