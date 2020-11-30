@@ -6,8 +6,7 @@ name: Fireplotting
 on:
   schedule:
     - cron: '0 0 * * *'
-  git:
-    push:
+  push:
     
     
   
